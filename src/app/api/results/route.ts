@@ -23,8 +23,9 @@ if (dbUrl.startsWith('file:')) {
 let db: any;
 try {
   db = createClient({ url: dbUrl })
-} catch (e) {
-  console.warn("Could not create LibSQL client at build time:", e);
+} catch (e: any) {
+  console.warn("Could not create LibSQL client, using fallback:", e.message);
+  db = createClient({ url: 'file:./fallback.db' })
 }
 
 export async function POST(req: NextRequest) {

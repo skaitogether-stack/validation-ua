@@ -35,11 +35,11 @@ try {
     url: dbUrl,
   });
 } catch (e) {
-  console.error("LIBSQL CREATECLIENT SEVERE ERROR:", e);
-  // Не викидаємо помилку під час білду, щоб Next.js міг зібратися
+  console.warn("LIBSQL CREATECLIENT FAILED, using in-memory fallback for build phase:", e.message);
+  libsql = createClient({ url: 'file:./fallback.db' });
 }
 
-const adapter = libsql ? new PrismaLibSql(libsql as any) : null;
+const adapter = new PrismaLibSql(libsql as any);
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
 
@@ -48,7 +48,7 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = undefined;
 }
 
-export const db = globalForPrisma.prisma ?? (adapter ? new PrismaClient({ adapter }) : new PrismaClient())
+export const db = globalForPrisma.prisma ?? new PrismaClient({ adapter })
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = db
