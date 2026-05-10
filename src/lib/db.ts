@@ -36,10 +36,10 @@ try {
   });
 } catch (e) {
   console.error("LIBSQL CREATECLIENT SEVERE ERROR:", e);
-  throw e;
+  // Не викидаємо помилку під час білду, щоб Next.js міг зібратися
 }
 
-const adapter = new PrismaLibSql(libsql as any);
+const adapter = libsql ? new PrismaLibSql(libsql as any) : null;
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
 
@@ -48,7 +48,7 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = undefined;
 }
 
-export const db = globalForPrisma.prisma ?? new PrismaClient({ adapter })
+export const db = globalForPrisma.prisma ?? (adapter ? new PrismaClient({ adapter }) : new PrismaClient())
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = db

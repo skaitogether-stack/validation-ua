@@ -20,7 +20,12 @@ if (dbUrl.startsWith('file:')) {
   }
 }
 
-const db = createClient({ url: dbUrl })
+let db: any;
+try {
+  db = createClient({ url: dbUrl })
+} catch (e) {
+  console.warn("Could not create LibSQL client at build time:", e);
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json()

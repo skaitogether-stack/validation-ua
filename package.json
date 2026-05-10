@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "DATABASE_URL=file:./dummy.db next build",
     "start": "prisma db push && next start -H 0.0.0.0",
     "lint": "eslint",
     "postinstall": "prisma generate"
