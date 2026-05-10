@@ -8,11 +8,26 @@ import path from 'path'
 // - file:/absolute/path → authority=undefined → ОК  
 // - file://host/path    → authority={host} → перевірка хоста → URL_INVALID!
 // Тому використовуємо формат БЕЗ подвійного слеша:
+import fs from 'fs'
+
 // Якщо є DATABASE_URL з оточення (наприклад, на Railway) - використовуємо його,
 // інакше генеруємо локальний шлях для розробки.
 const dbUrl = process.env.DATABASE_URL || `file:${path.resolve(process.cwd(), 'dev.db')}`
 
 console.log('LibSQL DB URL:', dbUrl)
+
+// Гарантуємо, що директорія існує під час білду (бо Railway монтує Volume тільки в runtime)
+if (dbUrl.startsWith('file:')) {
+  const dbPath = dbUrl.replace('file:', '')
+  const dir = path.dirname(dbPath)
+  if (!fs.existsSync(dir)) {
+    try {
+      fs.mkdirSync(dir, { recursive: true })
+    } catch (e) {
+      console.warn("Could not create directory for DB, might be a build phase issue:", e)
+    }
+  }
+}
 
 let libsql;
 try {

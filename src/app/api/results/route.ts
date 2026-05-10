@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@libsql/client'
 
+import fs from 'fs'
+import path from 'path'
+
 // Ініціалізуємо LibSQL клієнт напряму, щоб оминути всі експериментальні баги Prisma 7 + Turbopack
 const dbUrl = process.env.DATABASE_URL || 'file:./dev.db'
+
+// Гарантуємо, що директорія існує під час білду
+if (dbUrl.startsWith('file:')) {
+  const dbPath = dbUrl.replace('file:', '')
+  const dir = path.dirname(dbPath)
+  if (!fs.existsSync(dir)) {
+    try {
+      fs.mkdirSync(dir, { recursive: true })
+    } catch (e) {}
+  }
+}
+
 const db = createClient({ url: dbUrl })
 
 export async function POST(req: NextRequest) {
