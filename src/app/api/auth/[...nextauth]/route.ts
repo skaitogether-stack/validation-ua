@@ -1,5 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
+
+export const dynamic = 'force-dynamic'
 import { db } from '../../../../lib/db'
 
 export const authOptions: NextAuthOptions = {

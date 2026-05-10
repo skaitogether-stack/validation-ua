@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@libsql/client'
 
+export const dynamic = 'force-dynamic'
+
 import fs from 'fs'
 import path from 'path'
 
