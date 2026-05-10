@@ -1,6 +1,6 @@
 {
   "build": {
-    "buildCommand": "npm run build"
+    "buildCommand": "DATABASE_URL=\"file:./dummy.db\" npm run build"
   },
   "deploy": {
     "startCommand": "npm run start"
