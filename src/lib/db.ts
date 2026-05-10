@@ -34,7 +34,7 @@ try {
   libsql = createClient({
     url: dbUrl,
   });
-} catch (e) {
+} catch (e: any) {
   console.warn("LIBSQL CREATECLIENT FAILED, using in-memory fallback for build phase:", e.message);
   libsql = createClient({ url: 'file:./fallback.db' });
 }
