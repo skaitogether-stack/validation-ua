@@ -3,7 +3,15 @@
 
 // 8. interface — описує форму об'єкта
 //    TypeScript перевірить що дані правильні
+export interface Subject {
+    id: string
+    title: string
+    desc: string
+    icon: string
+}
+
 export interface Lesson {
+    subjectId: string
     id: string
     title: string
     desc: string

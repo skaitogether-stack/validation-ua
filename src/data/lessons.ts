@@ -3,6 +3,7 @@ import { Lesson } from '../types';
 // Приклад даних (потім буде з API)
 export const lessons: Lesson[] = [
   {
+    subjectId: 'ukrainian',
     id: 'orth-1',
     title: 'Ненаголошені е, и',
     desc: 'Як перевіряти ненаголошені голосні',
@@ -10,6 +11,7 @@ export const lessons: Lesson[] = [
     status: 'done', statusLabel: 'Пройдено',
   },
   {
+    subjectId: 'ukrainian',
     id: 'orth-2',
     title: 'Апостроф',
     desc: 'Коли ставити апостроф після б, п, в, м, ф',
@@ -17,6 +19,7 @@ export const lessons: Lesson[] = [
     status: 'active', statusLabel: 'Активний',
   },
   {
+    subjectId: 'ukrainian',
     id: 'orth-3',
     title: 'М\'який знак',
     desc: 'Правила вживання м\'якого знака',
@@ -24,6 +27,7 @@ export const lessons: Lesson[] = [
     status: 'locked', statusLabel: 'Заблоковано',
   },
   {
+    subjectId: 'ukrainian',
     id: 'morph-1',
     title: 'Іменник',
     desc: 'Відмінювання іменників 6 клас',

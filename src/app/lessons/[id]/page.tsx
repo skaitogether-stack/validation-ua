@@ -21,7 +21,7 @@ export default async function LessonPage({ params }: Props) {
 
   return (
     <main className="max-w-2xl mx-auto p-6">
-      <Link href="/" className="text-sm text-gray-500 mb-6 block">
+      <Link href={`/subjects/${lesson.subjectId}`} className="text-sm text-gray-500 mb-6 block">
         ← Назад до уроків
       </Link>
       
