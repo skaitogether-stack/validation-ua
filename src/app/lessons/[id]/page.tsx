@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
 import { LessonQuiz } from '../../../components/LessonQuiz'
+import { LessonMedia } from '../../../components/LessonMedia'
 
 // Next.js 15+ передає params як Promise
 interface Props {
@@ -32,37 +33,10 @@ export default async function LessonPage({ params }: Props) {
       <p className="text-gray-500 mb-8">{lesson.desc}</p>
 
       <div className="space-y-6">
-        {/* Презентація */}
-        <div className="p-6 border rounded-2xl bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
-              📊
-            </div>
-            <div>
-              <h2 className="text-xl font-bold mb-1">Подивитись презентацію</h2>
-              <p className="text-gray-500 text-sm">Ознайомтеся з теоретичним матеріалом уроку</p>
-            </div>
-          </div>
-          <button className="px-5 py-2.5 bg-blue-50 text-blue-600 rounded-xl font-semibold hover:bg-blue-100 transition-colors whitespace-nowrap">
-            Відкрити
-          </button>
-        </div>
-
-        {/* Відео */}
-        <div className="p-6 border rounded-2xl bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
-              🎬
-            </div>
-            <div>
-              <h2 className="text-xl font-bold mb-1">Подивитись відео</h2>
-              <p className="text-gray-500 text-sm">Перегляньте відео-пояснення до цієї теми</p>
-            </div>
-          </div>
-          <button className="px-5 py-2.5 bg-purple-50 text-purple-600 rounded-xl font-semibold hover:bg-purple-100 transition-colors whitespace-nowrap">
-            Дивитись
-          </button>
-        </div>
+        <LessonMedia 
+          presentationUrl={lesson.presentationUrl} 
+          videoUrl={lesson.videoUrl} 
+        />
 
         {/* Тест */}
         <div className="p-6 border rounded-2xl bg-white shadow-sm">

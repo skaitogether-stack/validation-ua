@@ -297,6 +297,8 @@ export const lessons: Lesson[] = [
     desc: 'Тема 6. Вчимося у природи і дбаємо про її збереження',
     icon: '♻️', xp: 50, progress: 0,
     status: 'active', statusLabel: 'Активний',
+    presentationUrl: '/media/nature_blueprint_33.pdf',
+    videoUrl: '/media/yak_piznayut_pryrodu_33.mp4',
   },
   {
     subjectId: 'science',

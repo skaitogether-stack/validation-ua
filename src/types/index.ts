@@ -22,4 +22,7 @@ export interface Lesson {
     // 9. union type — тільки ці три значення
     status: 'done' | 'active' | 'locked'
     statusLabel: string
+
+    presentationUrl?: string
+    videoUrl?: string
 }
