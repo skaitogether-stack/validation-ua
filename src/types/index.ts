@@ -25,4 +25,11 @@ export interface Lesson {
 
     presentationUrl?: string
     videoUrl?: string
+    
+    // Текстові правила та приклади для уроків
+    content?: {
+        title?: string
+        text: string
+        examples?: string[]
+    }[]
 }

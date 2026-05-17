@@ -38,6 +38,33 @@ export default async function LessonPage({ params }: Props) {
           videoUrl={lesson.videoUrl} 
         />
 
+        {/* Текстові правила */}
+        {lesson.content && lesson.content.length > 0 && (
+          <div className="space-y-6">
+            {lesson.content.map((block, idx) => (
+              <div key={idx} className="p-6 bg-white border border-blue-100 rounded-2xl shadow-sm">
+                {block.title && <h3 className="text-xl font-bold text-blue-900 mb-3">{block.title}</h3>}
+                <div className="text-gray-700 leading-relaxed whitespace-pre-wrap mb-4">
+                  {block.text}
+                </div>
+                {block.examples && block.examples.length > 0 && (
+                  <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100/50">
+                    <h4 className="text-sm font-semibold text-blue-800 mb-2 uppercase tracking-wider">Приклади:</h4>
+                    <ul className="space-y-2">
+                      {block.examples.map((ex, i) => (
+                        <li key={i} className="flex gap-2 text-gray-700">
+                          <span className="text-blue-400 font-bold">•</span>
+                          <span>{ex}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Тест */}
         <div className="p-6 border rounded-2xl bg-white shadow-sm">
           <div className="flex items-start gap-4 mb-6">
