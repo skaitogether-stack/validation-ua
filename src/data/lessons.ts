@@ -307,5 +307,7 @@ export const lessons: Lesson[] = [
     desc: 'Тема 6. Вчимося у природи і дбаємо про її збереження',
     icon: '♻️', xp: 50, progress: 0,
     status: 'active', statusLabel: 'Активний',
+    presentationUrl: '/media/eco_heritage_34.pdf',
+    videoUrl: '/media/dbaymo_pro_zberezhennia_34.mp4',
   },
 ];
