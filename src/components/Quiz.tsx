@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'  // useState зберігає стан між рендерами
+import { useState, useMemo } from 'react'  // useState зберігає стан між рендерами
 
 // Типи питань
 interface Question {
@@ -16,7 +16,26 @@ interface QuizProps {
   onComplete: (score: number) => void  // викликається після останнього питання
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
 export function Quiz({ questions, onComplete }: QuizProps) {
+  // Перемішуємо питання та варіанти відповідей лише один раз при монтуванні
+  const shuffledQuestions = useMemo(() => {
+    return shuffleArray(questions).map(q => {
+      const correctOption = q.options[q.correct]
+      const shuffledOptions = shuffleArray(q.options)
+      const newCorrectIndex = shuffledOptions.indexOf(correctOption)
+      return { ...q, options: shuffledOptions, correct: newCorrectIndex }
+    })
+  }, [questions])
+
   // useState — головний хук React
   // [значення, функція_що_змінює_значення] = useState(початкове_значення)
   const [current, setCurrent]   = useState(0)      // поточний індекс питання
@@ -24,8 +43,8 @@ export function Quiz({ questions, onComplete }: QuizProps) {
   const [answered, setAnswered] = useState(false)  // чи перевірили вже
   const [score, setScore]       = useState(0)      // кількість правильних
 
-  const question = questions[current]  // поточне питання
-  const isLast   = current === questions.length - 1
+  const question = shuffledQuestions[current]  // поточне питання
+  const isLast   = current === shuffledQuestions.length - 1
 
   function handleSelect(index: number) {
     if (answered) return  // після перевірки не можна змінити

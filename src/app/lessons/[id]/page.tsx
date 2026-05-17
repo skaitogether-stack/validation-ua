@@ -52,7 +52,11 @@ export default async function LessonPage({ params }: Props) {
           
           <div className="mt-2">
             {questions.length > 0
-              ? <LessonQuiz lessonId={id} questions={questions} />
+              ? (
+                 <Link href={`/lessons/${id}/quiz`} className="inline-block px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors shadow-sm">
+                   Почати тест
+                 </Link>
+              )
               : <p className="text-gray-400 text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">Питань ще немає</p>
             }
           </div>

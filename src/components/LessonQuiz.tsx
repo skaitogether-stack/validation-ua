@@ -12,6 +12,7 @@ export function LessonQuiz({ lessonId, questions }: Props) {
   const [done, setDone]       = useState(false)
   const [score, setScore]     = useState(0)
   const [saving, setSaving]   = useState(false)
+  const [attempt, setAttempt] = useState(0)
 
   async function handleComplete(finalScore: number) {
     setScore(finalScore)
@@ -53,7 +54,7 @@ export function LessonQuiz({ lessonId, questions }: Props) {
           <p className="text-xs text-gray-400 mb-4">Зберігаємо результат...</p>
         )}
         <button
-          onClick={() => { setDone(false); setScore(0) }}
+          onClick={() => { setDone(false); setScore(0); setAttempt(a => a + 1) }}
           className="px-6 py-2.5 rounded-xl bg-gray-800 text-white text-sm font-semibold hover:bg-gray-900"
         >
           Пройти ще раз
@@ -62,5 +63,5 @@ export function LessonQuiz({ lessonId, questions }: Props) {
     )
   }
 
-  return <Quiz questions={questions} onComplete={handleComplete} />
+  return <Quiz key={attempt} questions={questions} onComplete={handleComplete} />
 }
