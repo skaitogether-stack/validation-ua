@@ -24,7 +24,7 @@ export const lessons: Lesson[] = [
     title: 'М\'який знак',
     desc: 'Правила вживання м\'якого знака',
     icon: '🔤', xp: 60, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'ukrainian',
@@ -32,7 +32,7 @@ export const lessons: Lesson[] = [
     title: 'Іменник',
     desc: 'Відмінювання іменників 6 клас',
     icon: '📚', xp: 70, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -48,7 +48,7 @@ export const lessons: Lesson[] = [
     title: '§ 2. Яка роль природничих наук у житті людини',
     desc: 'Тема 1. Вчимося досліджувати природу',
     icon: '🔬', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -56,7 +56,7 @@ export const lessons: Lesson[] = [
     title: '§ 3. Дослідницький спосіб розв’язання проблем',
     desc: 'Тема 1. Вчимося досліджувати природу',
     icon: '🔬', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -64,7 +64,7 @@ export const lessons: Lesson[] = [
     title: '§ 4. Як роблять відкриття та створюють винаходи',
     desc: 'Тема 1. Вчимося досліджувати природу',
     icon: '🔬', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -72,7 +72,7 @@ export const lessons: Lesson[] = [
     title: '§ 5. З чого складаються речовини і чому їх так багато',
     desc: 'Тема 2. Досліджуємо тіла, речовини, явища',
     icon: '🧪', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -80,7 +80,7 @@ export const lessons: Lesson[] = [
     title: '§ 6. Хімічні явища й ознаки, що їх супроводжують',
     desc: 'Тема 2. Досліджуємо тіла, речовини, явища',
     icon: '🧪', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -88,7 +88,7 @@ export const lessons: Lesson[] = [
     title: '§ 7. З чого складаються і де використовуються розчини',
     desc: 'Тема 2. Досліджуємо тіла, речовини, явища',
     icon: '🧪', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -96,7 +96,7 @@ export const lessons: Lesson[] = [
     title: '§ 8. Що називають матеріалами та як їх використовують',
     desc: 'Тема 2. Досліджуємо тіла, речовини, явища',
     icon: '🧪', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -104,7 +104,7 @@ export const lessons: Lesson[] = [
     title: '§ 9. Чим особливі реактивний рух і сила пружності',
     desc: 'Тема 2. Досліджуємо тіла, речовини, явища',
     icon: '🧪', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -112,7 +112,7 @@ export const lessons: Lesson[] = [
     title: '§ 10. Чому одні тіла плавають, а інші тонуть',
     desc: 'Тема 2. Досліджуємо тіла, речовини, явища',
     icon: '🧪', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -120,7 +120,7 @@ export const lessons: Lesson[] = [
     title: '§ 11. Досліджуємо електризацію тіл',
     desc: 'Тема 2. Досліджуємо тіла, речовини, явища',
     icon: '🧪', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -128,7 +128,7 @@ export const lessons: Lesson[] = [
     title: '§ 12. Як виникає та яку роботу виконує електричний струм',
     desc: 'Тема 2. Досліджуємо тіла, речовини, явища',
     icon: '🧪', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -136,7 +136,7 @@ export const lessons: Lesson[] = [
     title: '§ 13. Чим особливі магніти та навіщо вони потрібні',
     desc: 'Тема 2. Досліджуємо тіла, речовини, явища',
     icon: '🧪', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -144,7 +144,7 @@ export const lessons: Lesson[] = [
     title: '§ 14. Що належить до природних ресурсів і як їх використовує людина',
     desc: 'Тема 3. Дізнаємося про землю і всесвіт',
     icon: '🌍', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -152,7 +152,7 @@ export const lessons: Lesson[] = [
     title: '§ 15. Чому ґрунти є цінним природним ресурсом',
     desc: 'Тема 3. Дізнаємося про землю і всесвіт',
     icon: '🌍', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -160,7 +160,7 @@ export const lessons: Lesson[] = [
     title: '§ 16. Як людина змінює оболонки Землі',
     desc: 'Тема 3. Дізнаємося про землю і всесвіт',
     icon: '🌍', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -168,7 +168,7 @@ export const lessons: Lesson[] = [
     title: '§ 17. Що відомо про сусідів Землі у Сонячній системі',
     desc: 'Тема 3. Дізнаємося про землю і всесвіт',
     icon: '🌍', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -176,7 +176,7 @@ export const lessons: Lesson[] = [
     title: '§ 18. Привідкриваємо таємниці зоряного неба',
     desc: 'Тема 3. Дізнаємося про землю і всесвіт',
     icon: '🌍', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -184,7 +184,7 @@ export const lessons: Lesson[] = [
     title: '§ 19. Про Всесвіт та його дослідження',
     desc: 'Тема 3. Дізнаємося про землю і всесвіт',
     icon: '🌍', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -192,7 +192,7 @@ export const lessons: Lesson[] = [
     title: '§ 20. Дізнаємося про освоєння космосу',
     desc: 'Тема 3. Дізнаємося про землю і всесвіт',
     icon: '🌍', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -200,7 +200,7 @@ export const lessons: Lesson[] = [
     title: '§ 21. Невидимий світ живої природи',
     desc: 'Тема 4. Вивчаємо живу природу землі',
     icon: '🌱', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -208,7 +208,7 @@ export const lessons: Lesson[] = [
     title: '§ 22. Чим особливі бактерії та віруси',
     desc: 'Тема 4. Вивчаємо живу природу землі',
     icon: '🌱', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -216,7 +216,7 @@ export const lessons: Lesson[] = [
     title: '§ 23. Навіщо та як класифікують організми',
     desc: 'Тема 4. Вивчаємо живу природу землі',
     icon: '🌱', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -224,7 +224,7 @@ export const lessons: Lesson[] = [
     title: '§ 24. Як розмножуються та розвиваються тварини і рослини',
     desc: 'Тема 4. Вивчаємо живу природу землі',
     icon: '🌱', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -232,7 +232,7 @@ export const lessons: Lesson[] = [
     title: '§ 25. Про природні екосистеми і біосферу',
     desc: 'Тема 4. Вивчаємо живу природу землі',
     icon: '🌱', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -240,7 +240,7 @@ export const lessons: Lesson[] = [
     title: '§ 26. Як влаштовані штучні екосистеми поля і саду',
     desc: 'Тема 4. Вивчаємо живу природу землі',
     icon: '🌱', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -248,7 +248,7 @@ export const lessons: Lesson[] = [
     title: '§ 27. Як влаштована і функціонує нервова система людини',
     desc: 'Тема 5. Пізнаємо організм людини в середовищі його існування',
     icon: '👤', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -256,7 +256,7 @@ export const lessons: Lesson[] = [
     title: '§ 28. Як змінюється організм людини, коли росте і розвивається',
     desc: 'Тема 5. Пізнаємо організм людини в середовищі його існування',
     icon: '👤', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -264,7 +264,7 @@ export const lessons: Lesson[] = [
     title: '§ 29. Як знання, природа і техніка допомагають людині піклуватися про здоров’я',
     desc: 'Тема 5. Пізнаємо організм людини в середовищі його існування',
     icon: '👤', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -272,7 +272,7 @@ export const lessons: Lesson[] = [
     title: '§ 30. З чого складається екосистема житла та що на неї впливає',
     desc: 'Тема 5. Пізнаємо організм людини в середовищі його існування',
     icon: '👤', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -280,7 +280,7 @@ export const lessons: Lesson[] = [
     title: '§ 31. Які ризики і наслідки споживацької діяльності людей для природи',
     desc: 'Тема 6. Вчимося у природи і дбаємо про її збереження',
     icon: '♻️', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -288,7 +288,7 @@ export const lessons: Lesson[] = [
     title: '§ 32. Чому важливо зберігати різноманіття організмів',
     desc: 'Тема 6. Вчимося у природи і дбаємо про її збереження',
     icon: '♻️', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -296,7 +296,7 @@ export const lessons: Lesson[] = [
     title: '§ 33. Як природа впливає на конструкторську і мистецьку діяльність людини',
     desc: 'Тема 6. Вчимося у природи і дбаємо про її збереження',
     icon: '♻️', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
   {
     subjectId: 'science',
@@ -304,6 +304,6 @@ export const lessons: Lesson[] = [
     title: '§ 34. Дбаймо про збереження природи',
     desc: 'Тема 6. Вчимося у природи і дбаємо про її збереження',
     icon: '♻️', xp: 50, progress: 0,
-    status: 'locked', statusLabel: 'Заблоковано',
+    status: 'active', statusLabel: 'Активний',
   },
 ];
