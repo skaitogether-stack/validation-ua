@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "prisma db push && next start -H 0.0.0.0",
+    "start": "REAL_DATABASE_URL=${DATABASE_URL:-file:./dev.db}; [ \"$REAL_DATABASE_URL\" = \"undefined\" ] && REAL_DATABASE_URL=\"file:./dev.db\"; export REAL_DATABASE_URL; prisma db push && next start -H 0.0.0.0",
     "lint": "eslint",
     "postinstall": "prisma generate"
   },
