@@ -10,12 +10,16 @@ import path from 'path'
 // Тому використовуємо формат БЕЗ подвійного слеша:
 import fs from 'fs'
 
-// Очищаємо некоректну змінну оточення DATABASE_URL перед ініціалізацією клієнта
-if (!process.env['DATABASE_URL'] || process.env['DATABASE_URL'] === 'undefined' || process.env['DATABASE_URL'] === 'null' || process.env['DATABASE_URL'].trim() === '') {
-  process.env['DATABASE_URL'] = `file:${path.resolve(process.cwd(), 'dev.db')}`
+// Очищаємо некоректну змінну оточення DATABASE_URL та встановлюємо REAL_DATABASE_URL перед ініціалізацією клієнта
+let dbUrl = process.env['DATABASE_URL']
+if (!dbUrl || dbUrl === 'undefined' || dbUrl === 'null' || dbUrl.trim() === '') {
+  dbUrl = `file:${path.resolve(process.cwd(), 'dev.db')}`
 }
 
-const dbUrl = process.env['DATABASE_URL']
+process.env['REAL_DATABASE_URL'] = dbUrl
+process.env['DATABASE_URL'] = dbUrl
+process.env.REAL_DATABASE_URL = dbUrl
+process.env.DATABASE_URL = dbUrl
 
 console.log('LibSQL DB URL:', dbUrl)
 

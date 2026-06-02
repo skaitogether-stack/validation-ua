@@ -10,14 +10,16 @@ export async function GET(req: NextRequest) {
     timestamp: new Date().toISOString(),
     env: {
       DATABASE_URL: process.env['DATABASE_URL'] ? 'DEFINED (hidden for security)' : 'UNDEFINED',
+      REAL_DATABASE_URL: process.env['REAL_DATABASE_URL'] || 'UNDEFINED',
       NODE_ENV: process.env.NODE_ENV,
     },
     dbFileChecks: {},
   }
 
   // Перевірка файлу БД, якщо це локальний файл
-  const dbUrl = process.env['DATABASE_URL'] || ''
+  const dbUrl = process.env['REAL_DATABASE_URL'] || process.env['DATABASE_URL'] || ''
   diagnostics.rawDbUrl = dbUrl
+  diagnostics.rawRealDbUrl = process.env['REAL_DATABASE_URL'] || ''
 
   if (dbUrl.startsWith('file:')) {
     const dbPath = dbUrl.replace('file:', '')
