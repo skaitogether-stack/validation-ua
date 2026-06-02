@@ -55,6 +55,7 @@ export default async function TeacherCabinetPage() {
     select: {
       id: true,
       title: true,
+      subjectId: true
     }
   })
 
@@ -87,11 +88,13 @@ export default async function TeacherCabinetPage() {
     const staticLesson = staticLessons.find(l => l.id === r.lessonId)
     const dbLesson = allDbLessons.find(l => l.id === r.lessonId)
     const lessonTitle = staticLesson ? staticLesson.title : (dbLesson ? dbLesson.title : `Урок #${r.lessonId}`)
+    const subjectId = staticLesson ? staticLesson.subjectId : (dbLesson ? dbLesson.subjectId : 'unknown')
     
     return {
       id: r.id,
       lessonId: r.lessonId,
       lessonTitle,
+      subjectId,
       score: r.score,
       total: r.total,
       createdAt: r.createdAt.toISOString(),
