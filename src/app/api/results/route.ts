@@ -7,7 +7,10 @@ import fs from 'fs'
 import path from 'path'
 
 // Ініціалізуємо LibSQL клієнт напряму, щоб оминути всі експериментальні баги Prisma 7 + Turbopack
-const dbUrl = process.env.DATABASE_URL || 'file:./dev.db'
+let dbUrl = process.env.DATABASE_URL
+if (!dbUrl || dbUrl === 'undefined' || dbUrl === 'null' || dbUrl.trim() === '') {
+  dbUrl = 'file:./dev.db'
+}
 
 // Гарантуємо, що директорія існує під час білду
 if (dbUrl.startsWith('file:')) {

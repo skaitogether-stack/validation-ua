@@ -12,7 +12,10 @@ import fs from 'fs'
 
 // Якщо є DATABASE_URL з оточення (наприклад, на Railway) - використовуємо його,
 // інакше генеруємо локальний шлях для розробки.
-const dbUrl = process.env.DATABASE_URL || `file:${path.resolve(process.cwd(), 'dev.db')}`
+let dbUrl = process.env.DATABASE_URL
+if (!dbUrl || dbUrl === 'undefined' || dbUrl === 'null' || dbUrl.trim() === '') {
+  dbUrl = `file:${path.resolve(process.cwd(), 'dev.db')}`
+}
 
 console.log('LibSQL DB URL:', dbUrl)
 
