@@ -3,13 +3,32 @@ import { redirect } from 'next/navigation'
 import { SubjectCard } from '../components/SubjectCard'
 import { subjects } from '../data/subjects'
 import { authOptions } from './api/auth/[...nextauth]/route'
+import { db } from '../lib/db'
 
-export default async function HomePage() {
+export const dynamic = 'force-dynamic'
+
+interface Props {
+  searchParams: Promise<{ setRole?: string }>
+}
+
+export default async function HomePage({ searchParams }: Props) {
+  const resolvedSearchParams = await searchParams
+  const setRole = resolvedSearchParams.setRole
+
   // Перевіряємо сесію на сервері
   const session = await getServerSession(authOptions)
 
   // Якщо не залогінений — редіректимо на /login
   if (!session) redirect('/login')
+
+  // Оновлюємо роль користувача, якщо задано параметр setRole
+  if (setRole === 'student' && session.user?.id) {
+    await db.user.update({
+      where: { id: session.user.id },
+      data: { role: 'student' }
+    })
+    redirect('/')
+  }
 
   return (
     <main className="max-w-3xl mx-auto p-6">
@@ -17,11 +36,13 @@ export default async function HomePage() {
         <h1 className="text-2xl font-bold">Оберіть предмет</h1>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500">{session.user?.name}</span>
-          <img
-            src={session.user?.image ?? ''}
-            className="w-8 h-8 rounded-full"
-            alt="avatar"
-          />
+          {session.user?.image && (
+            <img
+              src={session.user.image}
+              className="w-8 h-8 rounded-full border border-gray-150"
+              alt="avatar"
+            />
+          )}
         </div>
       </div>
 

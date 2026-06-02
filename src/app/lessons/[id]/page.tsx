@@ -66,13 +66,10 @@ export default async function LessonPage({ params }: Props) {
       <p className="text-gray-500 mb-8">{lesson.desc}</p>
 
       <div className="space-y-6">
-        {/* Показуємо медіа (презентацію/відео) лише якщо вони задані */}
-        {(lesson.presentationUrl || lesson.videoUrl) && (
-          <LessonMedia 
-            presentationUrl={lesson.presentationUrl} 
-            videoUrl={lesson.videoUrl} 
-          />
-        )}
+        <LessonMedia 
+          presentationUrl={lesson.presentationUrl} 
+          videoUrl={lesson.videoUrl} 
+        />
 
         {/* Текстові правила */}
         {lesson.content && lesson.content.length > 0 && (
