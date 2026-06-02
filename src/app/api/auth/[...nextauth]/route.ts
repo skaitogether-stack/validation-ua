@@ -1,5 +1,6 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
+import CredentialsProvider from 'next-auth/providers/credentials'
 
 export const dynamic = 'force-dynamic'
 import { db } from '../../../../lib/db'
@@ -13,6 +14,54 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
+    CredentialsProvider({
+      id: 'credentials',
+      name: 'Credentials',
+      credentials: {
+        email: { label: "Email", type: "text" },
+        name: { label: "Name", type: "text" },
+        role: { label: "Role", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email) return null
+        
+        const email = credentials.email.toLowerCase()
+        const role = credentials.role || 'student'
+        const name = credentials.name || (role === 'teacher' ? 'Вчитель' : 'Учень')
+
+        try {
+          let dbUser = await db.user.findUnique({
+            where: { email },
+          })
+
+          if (!dbUser) {
+            dbUser = await db.user.create({
+              data: {
+                email,
+                name,
+                role,
+              },
+            })
+          } else {
+            // Оновлюємо роль якщо входимо через відповідну кнопку швидкого входу
+            dbUser = await db.user.update({
+              where: { email },
+              data: { role },
+            })
+          }
+
+          return {
+            id: dbUser.id,
+            name: dbUser.name,
+            email: dbUser.email,
+            role: dbUser.role,
+          }
+        } catch (e) {
+          console.error('Error during credentials authorization:', e)
+          return null
+        }
+      }
+    }),
   ],
 
   session: {
@@ -21,6 +70,9 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async signIn({ user, account, profile }) {
+      // Для Credentials входу не потрібні додаткові дії в signIn
+      if (account?.provider === 'credentials') return true
+
       try {
         // Перевіряємо, чи є такий користувач у БД
         const existingUser = await db.user.findUnique({
@@ -56,19 +108,9 @@ export const authOptions: NextAuthOptions = {
 
     async jwt({ token, user }) {
       if (user) {
-        // Перший логін — дістаємо роль з БД
-        try {
-          const dbUser = await db.user.findUnique({
-            where: { email: user.email! },
-          })
-          if (dbUser) {
-            token.sub = dbUser.id
-            token.role = dbUser.role
-          }
-        } catch (e) {
-          console.error('Error fetching user role:', e)
-          token.role = 'student'
-        }
+        token.sub = user.id
+        // @ts-ignore
+        token.role = user.role || 'student'
       }
       return token
     },
@@ -76,8 +118,23 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user && token) {
         session.user.id = token.sub as string
-        // @ts-ignore
-        session.user.role = (token.role as string) || 'student'
+        
+        // Завжди дістаємо свіжу роль з БД для підтримки миттєвого перемикання
+        try {
+          const dbUser = await db.user.findUnique({
+            where: { id: token.sub as string },
+          })
+          if (dbUser) {
+            // @ts-ignore
+            session.user.role = dbUser.role
+          } else {
+            // @ts-ignore
+            session.user.role = (token.role as string) || 'student'
+          }
+        } catch (e) {
+          // @ts-ignore
+          session.user.role = (token.role as string) || 'student'
+        }
       }
       return session
     },

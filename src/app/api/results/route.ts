@@ -28,6 +28,9 @@ try {
   db = createClient({ url: 'file:./fallback.db' })
 }
 
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../auth/[...nextauth]/route'
+
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const { lessonId, score, total } = body
@@ -36,16 +39,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Не вистачає даних' }, { status: 400 })
   }
 
+  const session = await getServerSession(authOptions)
+  const userId = session?.user?.id || null
+
   try {
     const id = crypto.randomUUID()
     const createdAt = new Date().toISOString()
     
     await db.execute({
-      sql: 'INSERT INTO Result (id, lessonId, score, total, createdAt) VALUES (?, ?, ?, ?, ?)',
-      args: [id, lessonId, score, total, createdAt]
+      sql: 'INSERT INTO Result (id, lessonId, score, total, createdAt, userId) VALUES (?, ?, ?, ?, ?, ?)',
+      args: [id, lessonId, score, total, createdAt, userId]
     })
 
-    return NextResponse.json({ id, lessonId, score, total, createdAt }, { status: 201 })
+    return NextResponse.json({ id, lessonId, score, total, createdAt, userId }, { status: 201 })
   } catch (error: any) {
     console.error("API POST ERROR:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -59,11 +65,24 @@ export async function GET(req: NextRequest) {
 
     if (lessonId) {
       result = await db.execute({
-        sql: 'SELECT * FROM Result WHERE lessonId = ? ORDER BY createdAt DESC LIMIT 10',
+        sql: `
+          SELECT r.*, u.name as userName, u.email as userEmail, u.image as userImage 
+          FROM Result r 
+          LEFT JOIN User u ON r.userId = u.id 
+          WHERE r.lessonId = ? 
+          ORDER BY r.createdAt DESC 
+          LIMIT 20
+        `,
         args: [lessonId]
       })
     } else {
-      result = await db.execute('SELECT * FROM Result ORDER BY createdAt DESC LIMIT 10')
+      result = await db.execute(`
+        SELECT r.*, u.name as userName, u.email as userEmail, u.image as userImage 
+        FROM Result r 
+        LEFT JOIN User u ON r.userId = u.id 
+        ORDER BY r.createdAt DESC 
+        LIMIT 50
+      `)
     }
 
     // LibSQL повертає результати у масиві `.rows`

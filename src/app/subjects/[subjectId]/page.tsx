@@ -5,6 +5,9 @@ import { LessonCard } from '../../../components/LessonCard'
 import { lessons } from '../../../data/lessons'
 import { subjects } from '../../../data/subjects'
 import { authOptions } from '../../api/auth/[...nextauth]/route'
+import { db } from '../../../lib/db'
+
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params: Promise<{ subjectId: string }>
@@ -20,13 +23,56 @@ export default async function SubjectPage({ params }: Props) {
   const subject = subjects.find(s => s.id === subjectId)
   if (!subject) notFound()
 
-  const subjectLessons = lessons.filter(l => l.subjectId === subjectId)
+  // 1. Отримуємо статичні уроки
+  const staticSubjectLessons = lessons.filter(l => l.subjectId === subjectId)
+
+  // 2. Отримуємо динамічні уроки з БД
+  const dbLessons = await db.dbLesson.findMany({
+    where: { subjectId },
+    orderBy: { createdAt: 'asc' }
+  })
+
+  // 3. Отримуємо результати цього учня
+  const userResults = await db.result.findMany({
+    where: { userId: session.user.id }
+  })
+
+  // 4. Об'єднуємо та обчислюємо прогрес
+  const mergedLessons = [
+    ...staticSubjectLessons.map(l => {
+      const hasCompleted = userResults.some(r => r.lessonId === l.id)
+      if (hasCompleted) {
+        return {
+          ...l,
+          status: 'done' as const,
+          statusLabel: 'Пройдено',
+          progress: 100
+        }
+      }
+      return l
+    }),
+    ...dbLessons.map(dl => {
+      const hasCompleted = userResults.some(r => r.lessonId === dl.id)
+      return {
+        subjectId: dl.subjectId,
+        id: dl.id,
+        title: dl.title,
+        desc: dl.desc,
+        icon: dl.icon,
+        xp: dl.xp,
+        progress: hasCompleted ? 100 : 0,
+        status: (hasCompleted ? 'done' : 'active') as 'done' | 'active',
+        statusLabel: hasCompleted ? 'Пройдено' : 'Активний',
+      }
+    })
+  ]
 
   return (
     <main className="max-w-3xl mx-auto p-6">
-      <Link href="/" className="text-sm text-gray-500 mb-6 block">
+      <Link href="/" className="text-sm text-gray-500 mb-6 block hover:text-gray-800 transition-colors">
         ← Назад до предметів
       </Link>
+      
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <span className="text-3xl">{subject.icon}</span>
@@ -34,17 +80,23 @@ export default async function SubjectPage({ params }: Props) {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500">{session.user?.name}</span>
-          <img
-            src={session.user?.image ?? ''}
-            className="w-8 h-8 rounded-full"
-            alt="avatar"
-          />
+          {session.user?.image ? (
+            <img
+              src={session.user.image}
+              className="w-8 h-8 rounded-full"
+              alt="avatar"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+              {session.user?.name?.slice(0, 2).toUpperCase() || 'U'}
+            </div>
+          )}
         </div>
       </div>
 
-      {subjectLessons.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4">
-          {subjectLessons.map(lesson => (
+      {mergedLessons.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {mergedLessons.map(lesson => (
             <LessonCard key={lesson.id} lesson={lesson} />
           ))}
         </div>

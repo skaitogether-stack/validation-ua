@@ -39,10 +39,11 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  role          String    @default("student")  // student | admin
+  role          String    @default("student")  // student | teacher | admin
   accounts      Account[]
   sessions      Session[]
   results       Result[]  // зв'язок з результатами
+  sources       Source[]
 }
 
 model VerificationToken {
@@ -61,5 +62,41 @@ model Result {
   total     Int
   createdAt DateTime @default(now())
   userId    String?              // хто проходив (опціонально поки)
-  user      User?   @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model Source {
+  id        String     @id @default(cuid())
+  title     String
+  content   String
+  subjectId String
+  createdAt DateTime   @default(now())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessons   DbLesson[]
+}
+
+model DbLesson {
+  id          String       @id @default(cuid())
+  subjectId   String
+  title       String
+  desc        String
+  icon        String       @default("📝")
+  xp          Int          @default(50)
+  contentJson String       // JSON array of theoretical blocks
+  sourceId    String
+  source      Source       @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  questions   DbQuestion[]
+  createdAt   DateTime     @default(now())
+}
+
+model DbQuestion {
+  id           String   @id @default(cuid())
+  lessonId     String
+  lesson       DbLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  text         String
+  optionsJson  String   // JSON string array
+  correct      Int
+  explanation  String
+  createdAt    DateTime @default(now())
 }
