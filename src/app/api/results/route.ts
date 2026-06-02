@@ -7,11 +7,11 @@ import fs from 'fs'
 import path from 'path'
 
 // Очищаємо некоректну змінну оточення DATABASE_URL перед ініціалізацією клієнта
-if (!process.env.DATABASE_URL || process.env.DATABASE_URL === 'undefined' || process.env.DATABASE_URL === 'null' || process.env.DATABASE_URL.trim() === '') {
-  process.env.DATABASE_URL = 'file:./dev.db'
+if (!process.env['DATABASE_URL'] || process.env['DATABASE_URL'] === 'undefined' || process.env['DATABASE_URL'] === 'null' || process.env['DATABASE_URL'].trim() === '') {
+  process.env['DATABASE_URL'] = 'file:./dev.db'
 }
 
-const dbUrl = process.env.DATABASE_URL
+const dbUrl = process.env['DATABASE_URL']
 
 // Гарантуємо, що директорія існує під час білду
 if (dbUrl.startsWith('file:')) {

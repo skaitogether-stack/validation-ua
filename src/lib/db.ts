@@ -11,11 +11,11 @@ import path from 'path'
 import fs from 'fs'
 
 // Очищаємо некоректну змінну оточення DATABASE_URL перед ініціалізацією клієнта
-if (!process.env.DATABASE_URL || process.env.DATABASE_URL === 'undefined' || process.env.DATABASE_URL === 'null' || process.env.DATABASE_URL.trim() === '') {
-  process.env.DATABASE_URL = `file:${path.resolve(process.cwd(), 'dev.db')}`
+if (!process.env['DATABASE_URL'] || process.env['DATABASE_URL'] === 'undefined' || process.env['DATABASE_URL'] === 'null' || process.env['DATABASE_URL'].trim() === '') {
+  process.env['DATABASE_URL'] = `file:${path.resolve(process.cwd(), 'dev.db')}`
 }
 
-const dbUrl = process.env.DATABASE_URL
+const dbUrl = process.env['DATABASE_URL']
 
 console.log('LibSQL DB URL:', dbUrl)
 

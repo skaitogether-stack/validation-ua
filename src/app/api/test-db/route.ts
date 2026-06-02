@@ -9,14 +9,14 @@ export async function GET(req: NextRequest) {
   const diagnostics: any = {
     timestamp: new Date().toISOString(),
     env: {
-      DATABASE_URL: process.env.DATABASE_URL ? 'DEFINED (hidden for security)' : 'UNDEFINED',
+      DATABASE_URL: process.env['DATABASE_URL'] ? 'DEFINED (hidden for security)' : 'UNDEFINED',
       NODE_ENV: process.env.NODE_ENV,
     },
     dbFileChecks: {},
   }
 
   // Перевірка файлу БД, якщо це локальний файл
-  const dbUrl = process.env.DATABASE_URL || ''
+  const dbUrl = process.env['DATABASE_URL'] || ''
   diagnostics.rawDbUrl = dbUrl
 
   if (dbUrl.startsWith('file:')) {
