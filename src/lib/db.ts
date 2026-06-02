@@ -10,12 +10,12 @@ import path from 'path'
 // Тому використовуємо формат БЕЗ подвійного слеша:
 import fs from 'fs'
 
-// Якщо є DATABASE_URL з оточення (наприклад, на Railway) - використовуємо його,
-// інакше генеруємо локальний шлях для розробки.
-let dbUrl = process.env.DATABASE_URL
-if (!dbUrl || dbUrl === 'undefined' || dbUrl === 'null' || dbUrl.trim() === '') {
-  dbUrl = `file:${path.resolve(process.cwd(), 'dev.db')}`
+// Очищаємо некоректну змінну оточення DATABASE_URL перед ініціалізацією клієнта
+if (!process.env.DATABASE_URL || process.env.DATABASE_URL === 'undefined' || process.env.DATABASE_URL === 'null' || process.env.DATABASE_URL.trim() === '') {
+  process.env.DATABASE_URL = `file:${path.resolve(process.cwd(), 'dev.db')}`
 }
+
+const dbUrl = process.env.DATABASE_URL
 
 console.log('LibSQL DB URL:', dbUrl)
 
