@@ -61,27 +61,87 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Обробка файлу
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
     // Перевірка формату
-    if (!file.name.endsWith('.txt') && !file.name.endsWith('.md')) {
-      setError('Підтримуються тільки текстові файли (.txt або .md)')
+    const isText = file.name.endsWith('.txt') || file.name.endsWith('.md')
+    const isPdf = file.name.endsWith('.pdf')
+
+    if (!isText && !isPdf) {
+      setError('Підтримуються тільки текстові файли (.txt, .md) або PDF (.pdf)')
       return
     }
 
     setError(null)
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const text = event.target?.result as string
-      setContent(text)
-      if (!title) {
-        // Задаємо назву як ім'я файлу без розширення
-        setTitle(file.name.replace(/\.[^/.]+$/, ""))
+
+    if (isPdf) {
+      setIsProcessing(true)
+      setCurrentStep(0)
+      setProcessingLogs(['⏳ Завантаження та підготовка PDF-парсера...'])
+      
+      try {
+        // Динамічно завантажуємо pdfjs-dist з CDN
+        const pdfjsLib = await new Promise<any>((resolve, reject) => {
+          if ((window as any).pdfjsLib) {
+            resolve((window as any).pdfjsLib)
+            return
+          }
+          const script = document.createElement('script')
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+          script.onload = () => {
+            const pdfjs = (window as any).pdfjsLib
+            pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+            resolve(pdfjs)
+          }
+          script.onerror = () => reject(new Error('Не вдалося завантажити PDF-бібліотеку'))
+          document.head.appendChild(script)
+        })
+
+        setProcessingLogs((prev) => [...prev, '⚙️ Зчитування PDF файлу...'])
+        const arrayBuffer = await file.arrayBuffer()
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+        
+        setProcessingLogs((prev) => [...prev, `📖 Розпізнано сторінок: ${pdf.numPages}. Видобуваємо текст...`])
+        
+        let text = ''
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i)
+          const textContent = await page.getTextContent()
+          const pageText = textContent.items.map((item: any) => item.str).join(' ')
+          text += pageText + '\n'
+        }
+
+        if (!text.trim()) {
+          throw new Error('Не вдалося видобути текст із PDF. Можливо, файл складається тільки зі сканованих зображень.')
+        }
+
+        setContent(text)
+        if (!title) {
+          setTitle(file.name.replace(/\.[^/.]+$/, ""))
+        }
+        
+        setProcessingLogs((prev) => [...prev, '✅ Текст успішно видобуто з PDF!'])
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      } catch (err: any) {
+        setError(err.message || 'Сталася помилка при зчитуванні PDF')
+      } finally {
+        setIsProcessing(false)
+        setProcessingLogs([])
       }
+    } else {
+      // Текстовий файл (.txt, .md)
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const text = event.target?.result as string
+        setContent(text)
+        if (!title) {
+          setTitle(file.name.replace(/\.[^/.]+$/, ""))
+        }
+      }
+      reader.readAsText(file)
     }
-    reader.readAsText(file)
   }
 
   // Обробка форми
@@ -342,12 +402,12 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Завантажити файл джерела (.txt, .md)</label>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Завантажити файл джерела (.txt, .md, .pdf)</label>
                       <input
                         type="file"
                         ref={fileInputRef}
                         onChange={handleFileChange}
-                        accept=".txt,.md"
+                        accept=".txt,.md,.pdf"
                         className={`w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:cursor-pointer ${
                           selectedSubjectId === 'ukrainian' 
                             ? 'file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100' 
