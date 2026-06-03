@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Validation UA",
-  description: "Освітня платформа для вивчення української мови та природознавства",
+  description: "Освітня платформа для вивчення різних предметів, проходження тестів та тренування",
 };
 
 export default function RootLayout({

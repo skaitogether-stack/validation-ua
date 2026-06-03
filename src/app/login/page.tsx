@@ -31,7 +31,7 @@ export default function LoginPage() {
               </span>
               <h2 className="text-2xl font-extrabold text-gray-800 mt-4 mb-2">Портал для навчання</h2>
               <p className="text-gray-500 text-sm leading-relaxed">
-                Вивчайте нові теми з української мови та природознавства, проходьте тести, тренуйтесь та заробляйте досвід (XP).
+                Вивчайте нові теми з різних предметів, проходьте тести, тренуйтесь та заробляйте досвід (XP).
               </p>
             </div>
 

@@ -1,13 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { createClient } from '@libsql/client/sqlite3'
 import path from 'path'
 
 // LibSQL URI парсер:
 // - file:relative/path  → authority=undefined → ОК
 // - file:/absolute/path → authority=undefined → ОК  
 // - file://host/path    → authority={host} → перевірка хоста → URL_INVALID!
-// Тому використовуємо формат БЕЗ подвійного слеша:
+// - Тому використовуємо формат БЕЗ подвійного слеша:
 import fs from 'fs'
 
 // Очищаємо некоректну змінну оточення DATABASE_URL та встановлюємо REAL_DATABASE_URL перед ініціалізацією клієнта
@@ -36,17 +35,9 @@ if (dbUrl.startsWith('file:')) {
   }
 }
 
-let libsql;
-try {
-  libsql = createClient({
-    url: dbUrl,
-  });
-} catch (e: any) {
-  console.warn("LIBSQL CREATECLIENT FAILED, using in-memory fallback for build phase:", e.message);
-  libsql = createClient({ url: 'file:./fallback.db' });
-}
-
-const adapter = new PrismaLibSql(libsql as any);
+const adapter = new PrismaLibSql({
+  url: dbUrl,
+});
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
 
