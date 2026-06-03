@@ -22,9 +22,11 @@ export default async function TeacherCabinetPage({ searchParams }: Props) {
   }
 
   // Оновлюємо роль користувача на вчителя перед перевіркою, якщо є параметр setRole
-  if (setRole === 'teacher' && session.user?.id) {
+  if (setRole === 'teacher' && (session.user?.email || session.user?.id)) {
     await db.user.update({
-      where: { id: session.user.id },
+      where: session.user.email 
+        ? { email: session.user.email.toLowerCase() } 
+        : { id: session.user.id },
       data: { role: 'teacher' }
     })
     redirect('/teacher')

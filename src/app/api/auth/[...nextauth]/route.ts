@@ -111,27 +111,47 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id
         // @ts-ignore
         token.role = user.role || 'student'
+
+        if (user.email) {
+          try {
+            const dbUser = await db.user.findUnique({
+              where: { email: user.email.toLowerCase() },
+            })
+            if (dbUser) {
+              token.sub = dbUser.id
+              token.role = dbUser.role
+            }
+          } catch (e) {
+            console.error('Error mapping jwt sub to db user id:', e)
+          }
+        }
       }
       return token
     },
 
     async session({ session, token }) {
       if (session.user && token) {
-        session.user.id = token.sub as string
-        
-        // Завжди дістаємо свіжу роль з БД для підтримки миттєвого перемикання
+        let dbUser = null
         try {
-          const dbUser = await db.user.findUnique({
+          dbUser = await db.user.findUnique({
             where: { id: token.sub as string },
           })
-          if (dbUser) {
-            // @ts-ignore
-            session.user.role = dbUser.role
-          } else {
-            // @ts-ignore
-            session.user.role = (token.role as string) || 'student'
-          }
-        } catch (e) {
+        } catch (e) {}
+
+        if (!dbUser && session.user.email) {
+          try {
+            dbUser = await db.user.findUnique({
+              where: { email: session.user.email.toLowerCase() },
+            })
+          } catch (e) {}
+        }
+
+        if (dbUser) {
+          session.user.id = dbUser.id
+          // @ts-ignore
+          session.user.role = dbUser.role
+        } else {
+          session.user.id = token.sub as string
           // @ts-ignore
           session.user.role = (token.role as string) || 'student'
         }
