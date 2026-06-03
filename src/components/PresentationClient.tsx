@@ -59,7 +59,7 @@ export function PresentationClient({ lesson }: Props) {
   slides.push({
     type: 'summary',
     title: 'Чудова робота! 🎉',
-    desc: 'Ви успішно переглянули всі матеріали презентації від NanoBanana AI. Тепер ви готові перевірити свої знання!'
+    desc: 'Ви успішно переглянули всі матеріали презентації від NotebookLM. Тепер ви готові перевірити свої знання!'
   })
 
   const totalSlides = slides.length
@@ -134,7 +134,7 @@ export function PresentationClient({ lesson }: Props) {
             ← Повернутись до уроку
           </Link>
           <span className="text-xs font-black bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2 py-1 rounded-md uppercase tracking-wider">
-            NanoBanana AI ⚡
+            NotebookLM ⚡
           </span>
         </div>
         <div className="text-sm font-semibold text-gray-400">
@@ -235,7 +235,7 @@ export function PresentationClient({ lesson }: Props) {
           {/* Нижня панель слайду */}
           <div className="mt-8 pt-6 border-t border-gray-800/60 flex items-center justify-between text-xs text-gray-500 font-bold">
             <div>Тема: {lesson.title}</div>
-            <div className="text-yellow-500/80">Генерація: NanoBanana AI</div>
+            <div className="text-yellow-500/80">Генерація: NotebookLM</div>
           </div>
         </div>
 

@@ -445,7 +445,7 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
                     <div className="p-4 bg-yellow-50 border border-yellow-100 text-yellow-800 text-xs rounded-xl font-semibold flex items-start gap-2.5 shadow-2xs">
                       <span className="text-sm">💡</span>
                       <div>
-                        <strong className="font-extrabold block mb-0.5">Етап MVP: Презентації від NanoBanana AI</strong>
+                        <strong className="font-extrabold block mb-0.5">Етап MVP: Презентації від NotebookLM</strong>
                         Наразі встановлено ліміт: 1 генерація презентації на акаунт (окрім тестових профілів).
                       </div>
                     </div>
@@ -558,7 +558,7 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
                                           Генерація...
                                         </>
                                       ) : (
-                                        '⚡ Презентація NanoBanana'
+                                        '⚡ Презентація NotebookLM'
                                       )}
                                     </button>
                                   </div>
