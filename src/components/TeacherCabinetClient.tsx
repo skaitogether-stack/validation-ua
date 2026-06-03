@@ -151,6 +151,49 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
     }
   }
 
+  // Завантаження PDF-презентації
+  async function handleUploadPresentationPdf(lessonId: string, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.name.endsWith('.pdf')) {
+      setError('Будь ласка, виберіть PDF-файл презентації.')
+      return
+    }
+
+    setGeneratingPresId(lessonId)
+    setError(null)
+
+    try {
+      // Конвертуємо PDF у Base64
+      const reader = new FileReader()
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = (error) => reject(error)
+      })
+      reader.readAsDataURL(file)
+      const dataUrl = await base64Promise
+
+      // Відправляємо на сервер
+      const res = await fetch(`/api/teacher/lesson/${lessonId}/upload-presentation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ presentationPdf: dataUrl })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Не вдалося завантажити презентацію')
+      }
+
+      router.refresh()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setGeneratingPresId(null)
+    }
+  }
+
   // Обробка файлу
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -571,34 +614,60 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
                                   Урок: {l.title}
                                 </span>
                                 {l.presentationUrl ? (
-                                  <div className="flex items-center gap-1.5 mt-0.5">
-                                    <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100">
-                                      📊 Презентація готова
-                                    </span>
-                                    <Link
-                                      href={l.presentationUrl}
-                                      className="text-[10px] font-black text-blue-600 hover:underline"
-                                    >
-                                      Перегляд
-                                    </Link>
+                                  <div className="flex flex-col items-end gap-1.5 mt-0.5">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100">
+                                        📊 Презентація готова
+                                      </span>
+                                      <Link
+                                        href={l.presentationUrl.startsWith('data:application/pdf;base64,') ? `/api/lessons/${l.id}/presentation-pdf` : l.presentationUrl}
+                                        target="_blank"
+                                        className="text-[10px] font-black text-blue-600 hover:underline"
+                                      >
+                                        Перегляд
+                                      </Link>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      <label className="text-[9px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-0.5 rounded-lg border border-blue-200 transition-colors cursor-pointer">
+                                        📎 Замінити PDF
+                                        <input
+                                          type="file"
+                                          accept="application/pdf"
+                                          className="hidden"
+                                          disabled={generatingPresId === l.id}
+                                          onChange={(e) => handleUploadPresentationPdf(l.id, e)}
+                                        />
+                                      </label>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleGeneratePresentation(l.id)}
+                                        disabled={generatingPresId === l.id}
+                                        className="text-[9px] font-extrabold text-yellow-800 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                                      >
+                                        ШІ
+                                      </button>
+                                    </div>
                                   </div>
                                 ) : (
-                                  <div className="flex flex-col items-end gap-1 mt-0.5">
+                                  <div className="flex items-center gap-1.5 mt-0.5">
                                     <button
                                       type="button"
                                       onClick={() => handleGeneratePresentation(l.id)}
                                       disabled={generatingPresId === l.id}
                                       className="text-[9px] font-black bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-2 py-0.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-2xs"
                                     >
-                                      {generatingPresId === l.id ? (
-                                        <>
-                                          <span className="w-2.5 h-2.5 border border-gray-900 border-t-transparent animate-spin rounded-full inline-block"></span>
-                                          Генерація...
-                                        </>
-                                      ) : (
-                                        '⚡ Презентація NotebookLM'
-                                      )}
+                                      {generatingPresId === l.id ? 'Генерація...' : '⚡ ШІ'}
                                     </button>
+                                    <label className="text-[9px] font-black bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-2xs">
+                                      📎 PDF
+                                      <input
+                                        type="file"
+                                        accept="application/pdf"
+                                        className="hidden"
+                                        disabled={generatingPresId === l.id}
+                                        onChange={(e) => handleUploadPresentationPdf(l.id, e)}
+                                      />
+                                    </label>
                                   </div>
                                 )}
                               </div>
