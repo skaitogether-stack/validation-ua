@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 import { db } from '../../../../lib/db'
+import { generateEducationalContent } from '../../../../lib/gemini'
 
 export const dynamic = 'force-dynamic'
 
@@ -180,54 +181,103 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    // 2. Структуруємо теоретичні блоки
-    // Ділимо контент приблизно навпіл для 2 блоків теорії
-    const paragraphs = content.split('\n').map((p: string) => p.trim()).filter((p: string) => p.length > 0)
-    const midPoint = Math.ceil(paragraphs.length / 2)
-    const textBlock1 = paragraphs.slice(0, midPoint).join('\n\n')
-    const textBlock2 = paragraphs.slice(midPoint).join('\n\n')
+    // 2. Структуруємо теоретичні блоки та тести
+    let contentBlocks: any[] = []
+    let quizQuestions: any[] = []
+    let lessonTitle = title
+    let lessonDesc = `Матеріал завантажено вчителем ${user.name || ''}`
 
-    // Знаходимо приклади (речення, які містять "наприклад" або приклади в лапках/дужках)
-    const sentences = extractSentences(content)
-    const exampleCandidates = sentences.filter(s => 
-      s.toLowerCase().includes('наприклад') || 
-      s.toLowerCase().includes('зокрема') ||
-      s.includes(':') ||
-      (s.includes('"') && s.length < 80)
-    ).slice(0, 4)
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        console.log('Generating educational content with Gemini API...')
+        const generated = await generateEducationalContent(content, subjectId)
+        
+        if (generated.lessonTitle) {
+          lessonTitle = generated.lessonTitle
+        }
+        if (generated.lessonDescription) {
+          lessonDesc = generated.lessonDescription
+        }
 
-    const examplesBlock1 = exampleCandidates.slice(0, 2)
-    const examplesBlock2 = exampleCandidates.slice(2, 4)
+        if (generated.contentBlocks && generated.contentBlocks.length > 0) {
+          contentBlocks = generated.contentBlocks.map(block => ({
+            title: block.title,
+            text: block.text,
+            examples: block.examples || []
+          }))
+        }
 
-    if (examplesBlock1.length === 0) {
-      examplesBlock1.push('Розгляньте та проаналізуйте наведене вище твердження.')
-    }
-    if (examplesBlock2.length === 0) {
-      examplesBlock2.push('Зверніть увагу на правопис та вживання термінів у тексті.')
-    }
-
-    const contentBlocks = [
-      {
-        title: 'Теоретичні відомості. Частина I',
-        text: textBlock1 || 'Основна частина теоретичного матеріалу.',
-        examples: examplesBlock1
+        if (generated.questions && generated.questions.length > 0) {
+          quizQuestions = generated.questions.map(q => ({
+            text: q.text,
+            options: q.options,
+            correct: q.correctIndex,
+            explanation: q.explanation
+          }))
+        }
+      } catch (geminiError) {
+        console.error('Gemini content generation failed, falling back to local processing:', geminiError)
       }
-    ]
+    }
 
-    if (textBlock2) {
-      contentBlocks.push({
-        title: 'Теоретичні відомості. Частина II',
-        text: textBlock2,
-        examples: examplesBlock2
-      })
+    // Fallback: якщо Gemini не було або він повернув помилку/порожній масив
+    if (contentBlocks.length === 0) {
+      const paragraphs = content.split('\n').map((p: string) => p.trim()).filter((p: string) => p.length > 0)
+      const midPoint = Math.ceil(paragraphs.length / 2)
+      const textBlock1 = paragraphs.slice(0, midPoint).join('\n\n')
+      const textBlock2 = paragraphs.slice(midPoint).join('\n\n')
+
+      const sentences = extractSentences(content)
+      const exampleCandidates = sentences.filter(s => 
+        s.toLowerCase().includes('наприклад') || 
+        s.toLowerCase().includes('зокрема') ||
+        s.includes(':') ||
+        (s.includes('"') && s.length < 80)
+      ).slice(0, 4)
+
+      const examplesBlock1 = exampleCandidates.slice(0, 2)
+      const examplesBlock2 = exampleCandidates.slice(2, 4)
+
+      if (examplesBlock1.length === 0) {
+        examplesBlock1.push('Розгляньте та проаналізуйте наведене вище твердження.')
+      }
+      if (examplesBlock2.length === 0) {
+        examplesBlock2.push('Зверніть увагу на правопис та вживання термінів у тексті.')
+      }
+
+      contentBlocks = [
+        {
+          title: 'Теоретичні відомості. Частина I',
+          text: textBlock1 || 'Основна частина теоретичного матеріалу.',
+          examples: examplesBlock1
+        }
+      ]
+
+      if (textBlock2) {
+        contentBlocks.push({
+          title: 'Теоретичні відомості. Частина II',
+          text: textBlock2,
+          examples: examplesBlock2
+        })
+      }
+    }
+
+    if (quizQuestions.length === 0) {
+      const generatedQuestions = generateQuestionsFromText(content, '')
+      quizQuestions = generatedQuestions.map(q => ({
+        text: q.text,
+        options: q.options,
+        correct: q.correct,
+        explanation: q.explanation
+      }))
     }
 
     // 3. Створюємо DbLesson
     const dbLesson = await db.dbLesson.create({
       data: {
         subjectId,
-        title,
-        desc: `Матеріал завантажено вчителем ${user.name || ''}`,
+        title: lessonTitle,
+        desc: lessonDesc,
         icon: subjectId === 'ukrainian' ? '📚' : '🌍',
         xp: 100,
         contentJson: JSON.stringify(contentBlocks),
@@ -235,10 +285,8 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    // 4. Генеруємо та зберігаємо питання
-    const generatedQuestions = generateQuestionsFromText(content, dbLesson.id)
-    
-    for (const q of generatedQuestions) {
+    // 4. Зберігаємо питання
+    for (const q of quizQuestions) {
       await db.dbQuestion.create({
         data: {
           lessonId: dbLesson.id,
