@@ -52,6 +52,7 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   
   // Стани для симуляції "ШІ-парсингу"
   const [isProcessing, setIsProcessing] = useState(false)
@@ -59,6 +60,33 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
   const [processingLogs, setProcessingLogs] = useState<string[]>([])
   
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // Видалення джерела
+  async function handleDeleteSource(id: string) {
+    if (!confirm('Ви впевнені, що хочете видалити цей матеріал? Це також видалить згенеровані уроки, тести та результати учнів.')) {
+      return
+    }
+
+    setDeletingId(id)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/teacher/source/${id}`, {
+        method: 'DELETE'
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Не вдалося видалити матеріал')
+      }
+
+      router.refresh()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   // Обробка файлу
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -458,17 +486,32 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
                           </p>
                         </div>
                         
-                        <div className="flex flex-col items-end sm:items-start gap-1">
-                          <span className={`text-xs font-semibold px-3 py-1 rounded-lg ${
-                            selectedSubjectId === 'ukrainian' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50'
-                          }`}>
-                            🎉 Активний урок
-                          </span>
-                          {source.lessons.map(l => (
-                            <span key={l.id} className="text-[10px] text-gray-400 font-medium">
-                              ID уроку: {l.id}
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col items-end sm:items-start gap-1">
+                            <span className={`text-xs font-semibold px-3 py-1 rounded-lg ${
+                              selectedSubjectId === 'ukrainian' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50'
+                            }`}>
+                              🎉 Активний урок
                             </span>
-                          ))}
+                            {source.lessons.map(l => (
+                              <span key={l.id} className="text-[10px] text-gray-400 font-medium">
+                                ID уроку: {l.id}
+                              </span>
+                            ))}
+                          </div>
+                          
+                          <button
+                            onClick={() => handleDeleteSource(source.id)}
+                            disabled={deletingId === source.id}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                            title="Видалити матеріал"
+                          >
+                            {deletingId === source.id ? (
+                              <span className="w-5 h-5 block border-2 border-red-500 border-t-transparent animate-spin rounded-full"></span>
+                            ) : (
+                              <span className="text-lg">🗑️</span>
+                            )}
+                          </button>
                         </div>
                       </div>
                     ))}
