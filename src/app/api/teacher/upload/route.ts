@@ -5,6 +5,43 @@ import { db } from '../../../../lib/db'
 
 export const dynamic = 'force-dynamic'
 
+// Очищення тексту від навігаційного та інтерфейсного сміття сайтів
+function cleanText(text: string): string {
+  if (!text) return ''
+
+  let cleaned = text
+
+  // 1. Видаляємо ланцюжки хлібних крихт (наприклад: Home » ... » 5.9: ...)
+  cleaned = cleaned.replace(/(?:Contents\s+)?Home\s*[»›>]\s*[^»›>\n]+(?:[»›>]\s*[^»›>\n]+)*/gi, '')
+
+  // 2. Видаляємо метадані оновлення (наприклад: Last updated : Oct 27, 2022)
+  cleaned = cleaned.replace(/Last updated\s*:\s*[A-Za-z0-9,\s]+/gi, '')
+
+  // 3. Видаляємо фрази "Back to top", "Was this article helpful? Yes No"
+  cleaned = cleaned.replace(/Back to top/gi, '')
+  cleaned = cleaned.replace(/Was this article helpful\s*\??\s*Yes\s*No/gi, '')
+
+  // 4. Видаляємо списки розділів/навігації сайту (наприклад: "5.8: Тектонічні плити Землі 5.10: Теорія тектоніки плит")
+  cleaned = cleaned.replace(/\b\d+\.\d+:\s*[A-Za-zА-Яа-яЁёЇїІіЄєҐґ\s\w\-’'`’\"]+(?=\s+\d+\.\d+:)/g, '')
+  
+  // Видаляємо залишкове посилання на розділ в кінці або на початку меню
+  cleaned = cleaned.replace(/\b\d+\.\d+:\s*[A-Za-zА-Яа-яЁёЇїІіЄєҐґ\s\w\-’'`’\"]{3,45}(?=\s|$)/g, '')
+
+  // 5. Видаляємо окремі слова-артефакти меню
+  cleaned = cleaned.replace(/\bEx\b/g, '')
+
+  // 6. Очищаємо кожну лінію від зайвих пробілів та занадто короткого сміття
+  return cleaned
+    .split('\n')
+    .map(line => {
+      let l = line.trim()
+      l = l.replace(/\s+/g, ' ')
+      return l
+    })
+    .filter(line => line.length > 5)
+    .join('\n')
+}
+
 // Простий алгоритм для видобування речень
 function extractSentences(text: string): string[] {
   return text
@@ -125,11 +162,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { title, content, subjectId } = body
+    const { title, content: rawContent, subjectId } = body
 
-    if (!title || !content || !subjectId) {
+    if (!title || !rawContent || !subjectId) {
       return NextResponse.json({ error: 'Будь ласка, заповніть всі поля' }, { status: 400 })
     }
+
+    const content = cleanText(rawContent)
 
     // 1. Створюємо Source
     const source = await db.source.create({
