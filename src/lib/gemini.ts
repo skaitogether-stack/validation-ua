@@ -24,8 +24,8 @@ export async function generateEducationalContent(sourceText: string, subjectId: 
     throw new Error('GEMINI_API_KEY is not configured in the environment.')
   }
 
-  // Використовуємо gemini-1.5-flash для швидкості та стабільності
-  const model = 'gemini-1.5-flash'
+  // Використовуємо gemini-2.5-flash для швидкості та найвищої якості
+  const model = 'gemini-2.5-flash'
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
 
   const prompt = `
