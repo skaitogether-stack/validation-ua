@@ -77,17 +77,18 @@ model Source {
 }
 
 model DbLesson {
-  id          String       @id @default(cuid())
-  subjectId   String
-  title       String
-  desc        String
-  icon        String       @default("📝")
-  xp          Int          @default(50)
-  contentJson String       // JSON array of theoretical blocks
-  sourceId    String
-  source      Source       @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  questions   DbQuestion[]
-  createdAt   DateTime     @default(now())
+  id              String       @id @default(cuid())
+  subjectId       String
+  title           String
+  desc            String
+  icon            String       @default("📝")
+  xp              Int          @default(50)
+  contentJson     String       // JSON array of theoretical blocks
+  presentationUrl String?
+  sourceId        String
+  source          Source       @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  questions       DbQuestion[]
+  createdAt       DateTime     @default(now())
 }
 
 model DbQuestion {

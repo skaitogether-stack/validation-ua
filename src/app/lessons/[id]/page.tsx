@@ -36,6 +36,7 @@ export default async function LessonPage({ params }: Props) {
       progress: 0,
       status: 'active' as const,
       statusLabel: 'Активний',
+      presentationUrl: dbLesson.presentationUrl || undefined,
       content: JSON.parse(dbLesson.contentJson) as { title?: string; text: string; examples?: string[] }[]
     }
     questionsCount = dbLesson.questions.length

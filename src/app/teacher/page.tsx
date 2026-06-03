@@ -48,6 +48,7 @@ export default async function TeacherCabinetPage({ searchParams }: Props) {
           id: true,
           title: true,
           subjectId: true,
+          presentationUrl: true,
           createdAt: true,
         }
       }
@@ -97,6 +98,7 @@ export default async function TeacherCabinetPage({ searchParams }: Props) {
       id: l.id,
       title: l.title,
       subjectId: l.subjectId,
+      presentationUrl: l.presentationUrl,
       createdAt: l.createdAt.toISOString()
     }))
   }))

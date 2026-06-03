@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface Source {
   id: string
@@ -13,6 +14,7 @@ interface Source {
     id: string
     title: string
     subjectId: string
+    presentationUrl: string | null
     createdAt: string
   }[]
 }
@@ -53,6 +55,7 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
   const [content, setContent] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [generatingPresId, setGeneratingPresId] = useState<string | null>(null)
   
   // Стани для симуляції "ШІ-парсингу"
   const [isProcessing, setIsProcessing] = useState(false)
@@ -85,6 +88,29 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
       setError(err.message)
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  // Генерація презентації
+  async function handleGeneratePresentation(lessonId: string) {
+    setGeneratingPresId(lessonId)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/teacher/lesson/${lessonId}/generate-presentation`, {
+        method: 'POST'
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Не вдалося згенерувати презентацію')
+      }
+
+      router.refresh()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setGeneratingPresId(null)
     }
   }
 
@@ -416,6 +442,14 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
                       </div>
                     )}
 
+                    <div className="p-4 bg-yellow-50 border border-yellow-100 text-yellow-800 text-xs rounded-xl font-semibold flex items-start gap-2.5 shadow-2xs">
+                      <span className="text-sm">💡</span>
+                      <div>
+                        <strong className="font-extrabold block mb-0.5">Етап MVP: Презентації від NanoBanana AI</strong>
+                        Наразі встановлено ліміт: 1 генерація презентації на акаунт (окрім тестових профілів).
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Назва джерела (Тема параграфа)</label>
                       <input
@@ -494,9 +528,42 @@ export function TeacherCabinetClient({ initialSources, initialResults }: Props) 
                               🎉 Активний урок
                             </span>
                             {source.lessons.map(l => (
-                              <span key={l.id} className="text-[10px] text-gray-400 font-medium">
-                                ID уроку: {l.id}
-                              </span>
+                              <div key={l.id} className="flex flex-col gap-1 items-end mt-1 pt-1 border-t border-gray-100 w-full min-w-[200px]">
+                                <span className="text-[10px] text-gray-500 font-bold block max-w-[250px] truncate text-right">
+                                  Урок: {l.title}
+                                </span>
+                                {l.presentationUrl ? (
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100">
+                                      📊 Презентація готова
+                                    </span>
+                                    <Link
+                                      href={l.presentationUrl}
+                                      className="text-[10px] font-black text-blue-600 hover:underline"
+                                    >
+                                      Перегляд
+                                    </Link>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col items-end gap-1 mt-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleGeneratePresentation(l.id)}
+                                      disabled={generatingPresId === l.id}
+                                      className="text-[9px] font-black bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-2 py-0.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-2xs"
+                                    >
+                                      {generatingPresId === l.id ? (
+                                        <>
+                                          <span className="w-2.5 h-2.5 border border-gray-900 border-t-transparent animate-spin rounded-full inline-block"></span>
+                                          Генерація...
+                                        </>
+                                      ) : (
+                                        '⚡ Презентація NanoBanana'
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             ))}
                           </div>
                           
