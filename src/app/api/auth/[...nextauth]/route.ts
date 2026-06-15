@@ -40,13 +40,17 @@ export const authOptions: NextAuthOptions = {
                 email,
                 name,
                 role,
+                lastLoginAt: new Date(),
               },
             })
           } else {
             // Оновлюємо роль якщо входимо через відповідну кнопку швидкого входу
             dbUser = await db.user.update({
               where: { email },
-              data: { role },
+              data: {
+                role,
+                lastLoginAt: new Date(),
+              },
             })
           }
 
@@ -87,15 +91,17 @@ export const authOptions: NextAuthOptions = {
               name: user.name,
               image: user.image,
               role: 'student',
+              lastLoginAt: new Date(),
             },
           })
         } else {
-          // Оновлюємо дані (ім'я, аватарку)
+          // Оновлюємо дані (ім'я, аватарку, останній вхід)
           await db.user.update({
             where: { email: user.email! },
             data: {
               name: user.name,
               image: user.image,
+              lastLoginAt: new Date(),
             },
           })
         }

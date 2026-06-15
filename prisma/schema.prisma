@@ -40,6 +40,8 @@ model User {
   emailVerified DateTime?
   image         String?
   role          String    @default("student")  // student | teacher | admin
+  createdAt     DateTime  @default(now())
+  lastLoginAt   DateTime?
   accounts      Account[]
   sessions      Session[]
   results       Result[]  // зв'язок з результатами
