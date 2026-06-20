@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validation · AI Cost Calculator</title>
+<style>
+  :root {
+    --brand: #1A56DB;
+    --brand-light: #EEF2FF;
+    --green: #16A34A;
+    --green-bg: #DCFCE7;
+    --red: #DC2626;
+    --red-bg: #FEE2E2;
+    --orange: #EA580C;
+    --orange-bg: #FFF7ED;
+    --yellow-bg: #FEFCE8;
+    --yellow: #CA8A04;
+    --bg: #0F172A;
+    --surface: #1E293B;
+    --surface2: #273548;
+    --border: #334155;
+    --text: #F1F5F9;
+    --muted: #94A3B8;
+    --radius: 10px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 15px; letter-spacing: -.3px;
+  }
+  .logo-badge {
+    background: var(--brand);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .header-tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── Layout ── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: -.4px;
+  }
+  .page-sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 2rem;
+  }
+
+  /* ── Summary cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+  }
+  .card-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .card-value { font-size: 26px; font-weight: 700; letter-spacing: -.5px; }
+  .card-value.good { color: #4ADE80; }
+  .card-value.warn { color: #FBBF24; }
+  .card-value.bad  { color: #F87171; }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+  }
+  .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 1.2rem;
+  }
+
+  /* ── Controls ── */
+  .field { margin-bottom: 1.1rem; }
+  .field-label {
+    display: flex; justify-content: space-between;
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field-label span { color: var(--text); font-weight: 500; font-size: 13px; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%; height: 4px;
+    background: var(--border);
+    border-radius: 4px; outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    background: var(--brand);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--brand);
+  }
+
+  select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    outline: none;
+    cursor: pointer;
+    margin-top: 2px;
+  }
+  select:focus { border-color: var(--brand); }
+
+  /* ── Breakdown ── */
+  .breakdown {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .brow {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--muted);
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .brow:last-child { border-bottom: none; }
+  .brow strong { color: var(--text); font-weight: 600; }
+  .brow .val-good { color: #4ADE80; font-weight: 600; }
+  .brow .val-bad  { color: #F87171; font-weight: 600; }
+  .brow .val-muted { color: var(--muted); font-weight: 500; }
+
+  /* ── Alert box ── */
+  .alert {
+    display: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+  .alert.danger { background: rgba(220,38,38,.12); border: 1px solid rgba(220,38,38,.3); color: #FCA5A5; }
+  .alert.success { background: rgba(22,163,74,.12); border: 1px solid rgba(22,163,74,.3); color: #86EFAC; }
+  .alert.warning { background: rgba(234,88,12,.12); border: 1px solid rgba(234,88,12,.3); color: #FDBA74; }
+
+  /* ── Limits grid ── */
+  .limits {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 680px) { .limits { grid-template-columns: repeat(2, 1fr); } }
+
+  .limit-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+  .limit-name { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+  .limit-val  { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .limit-cost { font-size: 12px; }
+  .limit-cost.safe { color: #4ADE80; }
+  .limit-cost.risk { color: #F87171; }
+
+  /* ── Scenario table ── */
+  .section-title {
+    font-size: 15px; font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 2rem;
+  }
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(51,65,85,.5);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: rgba(30,41,59,.4); }
+  .td-good { color: #4ADE80; font-weight: 600; }
+  .td-bad  { color: #F87171; font-weight: 600; }
+  .td-warn { color: #FBBF24; font-weight: 600; }
+
+  /* ── Footer ── */
+  .updated {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-badge">V</span>
+    Validation
+    <span style="color:var(--muted); font-weight:400; font-size:13px;">/ AI Cost Calculator</span>
+  </div>
+  <span class="header-tag">🔒 Admin only</span>
+</header>
+
+<main>
+  <div class="page-title">Калькулятор собівартості AI-генерації</div>
+  <div class="page-sub">Розрахунок реальних витрат на токени залежно від активності платформи та моделі.</div>
+
+  <!-- Summary cards -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-label">Уроків/місяць</div>
+      <div class="card-value" id="s-lessons">0</div>
+      <div class="card-sub">школи × вчителі × ліміт</div>
+    </div>
+    <div class="card">
+      <div class="card-label">AI-витрати/місяць</div>
+      <div class="card-value" id="s-cost">$0</div>
+      <div class="card-sub" id="s-cost-sub">на поточній моделі</div>
+    </div>
+    <div class="card">
+      <div class="card-label">MRR</div>
+      <div class="card-value" id="s-mrr">$0</div>
+      <div class="card-sub">дохід від підписок</div>
+    </div>
+    <div class="card">
+      <div class="card-label">AI % від MRR</div>
+      <div class="card-value" id="s-pct">0%</div>
+      <div class="card-sub">має бути &lt;20%</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Profit/міс</div>
+      <div class="card-value" id="s-profit">$0</div>
+      <div class="card-sub">після AI + інфра</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Маржа</div>
+      <div class="card-value" id="s-margin">0%</div>
+      <div class="card-sub">ціль ≥ 70%</div>
+    </div>
+  </div>
+
+  <!-- Controls + Breakdown -->
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-title">Параметри платформи</div>
+
+      <div class="field">
+        <div class="field-label">Шкіл на платформі <span id="l-schools">30</span></div>
+        <input type="range" id="sl-schools" min="1" max="300" value="30" step="1">
+      </div>
+      <div class="field">
+        <div class="field-label">Вчителів на школу <span id="l-teachers">10</span></div>
+        <input type="range" id="sl-teachers" min="1" max="80" value="10" step="1">
+      </div>
+      <div class="field">
+        <div class="field-label">Активних вчителів (%) <span id="l-active">30%</span></div>
+        <input type="range" id="sl-active" min="5" max="100" value="30" step="5">
+      </div>
+      <div class="field">
+        <div class="field-label">Ліміт уроків/вч/міс <span id="l-limit">30</span></div>
+        <input type="range" id="sl-limit" min="1" max="100" value="30" step="1">
+      </div>
+      <div class="field">
+        <div class="field-label">Токенів на урок (avg) <span id="l-tokens">8 000</span></div>
+        <input type="range" id="sl-tokens" min="2000" max="30000" value="8000" step="500">
+      </div>
+      <div class="field">
+        <div class="field-label">Учнів/вч (для пояснень) <span id="l-students">25</span></div>
+        <input type="range" id="sl-students" min="0" max="40" value="25" step="1">
+      </div>
+
+      <div class="field">
+        <div class="field-label">AI-модель</div>
+        <select id="sel-model">
+          <option value="0.075">Gemini 2.5 Flash — $0.075/1M</option>
+          <option value="0.15">GPT-4o mini — $0.15/1M</option>
+          <option value="1.25">Gemini Pro 2.5 — $1.25/1M</option>
+          <option value="3">Claude Sonnet — $3.00/1M</option>
+          <option value="5">GPT-4o — $5.00/1M</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Тариф школи</div>
+        <select id="sel-plan">
+          <option value="0">Старт — безкоштовно</option>
+          <option value="29">Базовий — $29/міс</option>
+          <option value="49" selected>Школа — $49/міс</option>
+          <option value="99">Pro — $99/міс</option>
+          <option value="149">Enterprise — $149/міс</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Розбивка витрат</div>
+      <div class="breakdown">
+        <div class="brow"><span>Уроків (з урах. активності)</span><strong id="b-lessons">0</strong></div>
+        <div class="brow"><span>Витрати на генерацію</span><span id="b-gen" class="val-muted">$0</span></div>
+        <div class="brow"><span>Пояснення помилок учнів</span><span id="b-explain" class="val-muted">$0</span></div>
+        <div class="brow"><span>Разом AI API</span><span id="b-total-ai" class="val-muted">$0</span></div>
+        <div class="brow"><span>Інфраструктура (fixed)</span><span class="val-muted">$90</span></div>
+        <div class="brow"><span>MRR</span><strong id="b-mrr">$0</strong></div>
+        <div class="brow" style="padding-top:10px; margin-top:4px; border-top: 1px solid var(--border);">
+          <span style="font-weight:600;">Profit</span>
+          <strong id="b-profit">$0</strong>
+        </div>
+      </div>
+
+      <div class="alert danger" id="alert-danger">
+        <strong>⚠️ Збиток!</strong> AI + інфра перевищують дохід. Підвищте тариф або знизьте ліміти генерації.
+      </div>
+      <div class="alert warning" id="alert-warn">
+        <strong>⚡ Ризик:</strong> AI-витрати &gt;20% MRR. Рекомендується знизити ліміт або перейти на дешевшу модель.
+      </div>
+      <div class="alert success" id="alert-ok">
+        <strong>✅ Безпечно.</strong> AI-витрати <span id="alert-pct">0</span>% від MRR — маржа під контролем.
+      </div>
+
+      <div style="margin-top: 1.2rem; padding: 12px 14px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border);">
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 6px;">Собівартість 1 уроку</div>
+        <div style="font-size: 20px; font-weight: 700;" id="cost-per-lesson">$0.0006</div>
+        <div style="font-size: 12px; color: var(--muted); margin-top: 4px;" id="cost-per-lesson-sub">на Gemini 2.5 Flash</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Limits by plan -->
+  <div class="section-title">Рекомендовані ліміти по тарифах (поточна модель)</div>
+  <div class="limits" id="limits-grid"></div>
+
+  <!-- Scenarios table -->
+  <div class="section-title">Сценарії масштабування — прогноз AI-витрат</div>
+  <table id="scenario-table">
+    <thead>
+      <tr>
+        <th>Сценарій</th>
+        <th>Шкіл</th>
+        <th>Уроків/міс</th>
+        <th>AI-cost/міс</th>
+        <th>MRR</th>
+        <th>AI % MRR</th>
+        <th>Profit</th>
+        <th>Статус</th>
+      </tr>
+    </thead>
+    <tbody id="scenario-body"></tbody>
+  </table>
+
+  <div class="updated" id="updated-time"></div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const PLANS = [
+  { name: 'Старт (Free)', limit: 5, teachers: 3, price: 0, color: '#94A3B8' },
+  { name: 'Базовий $29', limit: 15, teachers: 10, price: 29, color: '#4ADE80' },
+  { name: 'Школа $49', limit: 30, teachers: 50, price: 49, color: '#60A5FA' },
+  { name: 'Enterprise $149', limit: 999, teachers: 999, price: 149, color: '#FB923C' },
+];
+
+const SCENARIOS = [
+  { label: 'Пілот (M1–2)', schools: 5, active: 20 },
+  { label: 'Старт (M3)', schools: 8, active: 25 },
+  { label: 'Зростання (M6)', schools: 17, active: 30 },
+  { label: 'Базовий (M9)', schools: 27, active: 35 },
+  { label: 'Масштаб (M12)', schools: 38, active: 40 },
+  { label: 'Ризик: без лімітів', schools: 38, active: 100, noLimit: true },
+];
+
+function fmt(n) {
+  if (n >= 1000) return '$' + (n/1000).toFixed(1) + 'k';
+  return '$' + n.toFixed(n < 1 ? 4 : n < 10 ? 2 : 0);
+}
+function fmtSmall(n) { return '$' + n.toFixed(4); }
+function pct(a,b) { return b > 0 ? Math.round(a/b*100) : 999; }
+
+function calc() {
+  const schools     = +$('sl-schools').value;
+  const teachers    = +$('sl-teachers').value;
+  const activePct   = +$('sl-active').value / 100;
+  const limitLessons= +$('sl-limit').value;
+  const tokensPerLesson = +$('sl-tokens').value;
+  const students    = +$('sl-students').value;
+  const modelPrice  = +$('sel-model').value;
+  const planPrice   = +$('sel-plan').value;
+
+  // Update labels
+  $('l-schools').textContent  = schools;
+  $('l-teachers').textContent = teachers;
+  $('l-active').textContent   = Math.round(activePct * 100) + '%';
+  $('l-limit').textContent    = limitLessons;
+  $('l-tokens').textContent   = tokensPerLesson.toLocaleString('uk');
+  $('l-students').textContent = students;
+
+  const activeTeachers = Math.round(teachers * activePct);
+  const totalLessons   = schools * activeTeachers * limitLessons;
+  const genTokens      = totalLessons * tokensPerLesson;
+  const explainTokens  = totalLessons * students * 500; // 500 tokens per student explanation
+  const totalTokens    = genTokens + explainTokens;
+  const aiCost         = totalTokens / 1_000_000 * modelPrice;
+  const genCost        = genTokens / 1_000_000 * modelPrice;
+  const explainCost    = explainTokens / 1_000_000 * modelPrice;
+  const mrr            = schools * planPrice;
+  const infra          = 90;
+  const profit         = mrr - aiCost - infra;
+  const aiPct          = pct(aiCost, mrr);
+  const margin         = mrr > 0 ? Math.round(profit/mrr*100) : -100;
+  const costPerLesson  = tokensPerLesson / 1_000_000 * modelPrice;
+
+  // Cards
+  $('s-lessons').textContent = totalLessons.toLocaleString('uk');
+  $('s-cost').textContent    = fmt(aiCost);
+  $('s-cost').className      = 'card-value ' + (aiCost < mrr * 0.2 ? 'good' : aiCost < mrr * 0.4 ? 'warn' : 'bad');
+  $('s-mrr').textContent     = fmt(mrr);
+  $('s-pct').textContent     = (mrr > 0 ? aiPct : '–') + (mrr > 0 ? '%' : '');
+  $('s-pct').className       = 'card-value ' + (aiPct < 10 ? 'good' : aiPct < 20 ? 'warn' : 'bad');
+  $('s-profit').textContent  = (profit >= 0 ? '+' : '') + fmt(profit);
+  $('s-profit').className    = 'card-value ' + (profit > 0 ? 'good' : profit > -50 ? 'warn' : 'bad');
+  $('s-margin').textContent  = margin + '%';
+  $('s-margin').className    = 'card-value ' + (margin >= 70 ? 'good' : margin >= 30 ? 'warn' : 'bad');
+
+  // Breakdown
+  $('b-lessons').textContent = totalLessons.toLocaleString('uk');
+  $('b-gen').textContent     = fmt(genCost);
+  $('b-gen').className       = 'val-' + (genCost < mrr * 0.1 ? 'good' : 'warn');
+  $('b-explain').textContent = fmt(explainCost);
+  $('b-explain').className   = 'val-' + (explainCost < mrr * 0.05 ? 'good' : 'warn');
+  $('b-total-ai').textContent = fmt(aiCost);
+  $('b-total-ai').className  = aiCost < mrr * 0.2 ? 'val-good' : 'val-bad';
+  $('b-mrr').textContent     = fmt(mrr);
+  $('b-profit').textContent  = (profit >= 0 ? '+' : '') + fmt(profit);
+  $('b-profit').className    = profit >= 0 ? 'val-good' : 'val-bad';
+
+  $('cost-per-lesson').textContent    = fmtSmall(costPerLesson);
+  $('cost-per-lesson-sub').textContent = `на поточній моделі × ${tokensPerLesson.toLocaleString()} tokens`;
+
+  // Alerts
+  $('alert-danger').style.display = profit < 0 ? 'block' : 'none';
+  $('alert-warn').style.display   = profit >= 0 && aiPct > 20 ? 'block' : 'none';
+  $('alert-ok').style.display     = profit >= 0 && aiPct <= 20 ? 'block' : 'none';
+  if (profit >= 0 && aiPct <= 20) $('alert-pct').textContent = aiPct;
+
+  // Limits grid
+  const grid = $('limits-grid');
+  grid.innerHTML = PLANS.map(plan => {
+    const lim = plan.limit === 999 ? limitLessons * 3 : plan.limit;
+    const activeTch = Math.min(plan.teachers, 50) * 0.3;
+    const planLessons = activeTch * lim;
+    const planAI = planLessons * tokensPerLesson / 1_000_000 * modelPrice;
+    const planAIWithExplain = planAI + (planLessons * students * 500 / 1_000_000 * modelPrice);
+    const safe = planAIWithExplain < plan.price * 0.25;
+    const risky = plan.price > 0 && planAIWithExplain > plan.price * 0.4;
+    return `<div class="limit-card" style="border-color: ${risky ? 'rgba(220,38,38,.4)' : safe ? 'rgba(22,163,74,.3)' : 'rgba(234,88,12,.3)'}">
+      <div class="limit-name">${plan.name}</div>
+      <div class="limit-val" style="color: ${plan.color}">${plan.limit === 999 ? '∞ (throttle)' : plan.limit + ' ур/вч'}</div>
+      <div class="limit-cost ${safe ? 'safe' : 'risk'}">
+        AI: ~${fmt(planAIWithExplain)}/школу
+      </div>
+      <div style="font-size:11px; color: var(--muted); margin-top:3px;">
+        ${plan.price > 0 ? Math.round(planAIWithExplain/plan.price*100) + '% від тарифу' : 'free tier'}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Scenarios
+  const tbody = $('scenario-body');
+  const selModel = modelPrice;
+  const selLimit = limitLessons;
+  const selTeachers = teachers;
+  tbody.innerHTML = SCENARIOS.map(s => {
+    const lim = s.noLimit ? selLimit * 10 : selLimit;
+    const actTch = Math.round(selTeachers * (s.active / 100));
+    const lessons = s.schools * actTch * lim;
+    const cost = lessons * tokensPerLesson / 1_000_000 * selModel
+               + lessons * students * 500 / 1_000_000 * selModel;
+    const sMrr = s.schools * planPrice;
+    const sProfit = sMrr - cost - 90;
+    const sPct = pct(cost, sMrr);
+    const status = sProfit < 0 ? '<span class="td-bad">Збиток</span>'
+                 : sPct > 20   ? '<span class="td-warn">Ризик</span>'
+                 :                '<span class="td-good">✓ Норма</span>';
+    return `<tr>
+      <td>${s.label}</td>
+      <td>${s.schools}</td>
+      <td>${lessons.toLocaleString('uk')}</td>
+      <td class="${cost > sMrr * 0.4 ? 'td-bad' : cost > sMrr * 0.2 ? 'td-warn' : 'td-good'}">${fmt(cost)}</td>
+      <td>${fmt(sMrr)}</td>
+      <td class="${sPct > 40 ? 'td-bad' : sPct > 20 ? 'td-warn' : 'td-good'}">${sMrr > 0 ? sPct + '%' : '–'}</td>
+      <td class="${sProfit >= 0 ? 'td-good' : 'td-bad'}">${(sProfit >= 0 ? '+' : '') + fmt(sProfit)}</td>
+      <td>${status}</td>
+    </tr>`;
+  }).join('');
+
+  // Timestamp
+  $('updated-time').textContent = 'Оновлено: ' + new Date().toLocaleTimeString('uk');
+}
+
+['sl-schools','sl-teachers','sl-active','sl-limit','sl-tokens','sl-students'].forEach(id => {
+  $(id).addEventListener('input', calc);
+});
+['sel-model','sel-plan'].forEach(id => {
+  $(id).addEventListener('change', calc);
+});
+
+calc();
+</script>
+</body>
+</html>
