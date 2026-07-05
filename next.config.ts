@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
         source: "/ai-calculator",
         destination: "/ai-calculator.html",
       },
+      {
+        source: "/pilot",
+        destination: "/pilot.html",
+      },
+      {
+        source: "/pilot-form",
+        destination: "/pilot-form.html",
+      },
     ];
   },
 };
