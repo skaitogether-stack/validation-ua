@@ -20,37 +20,35 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "text" },
         name: { label: "Name", type: "text" },
-        role: { label: "Role", type: "text" },
       },
+      // Роль НІКОЛИ не приймається з клієнта — тільки з БД (виставляється через прийняте Invite
+      // або вручну для першого адміна школи). Інакше будь-хто міг би увійти як admin/teacher.
       async authorize(credentials) {
         if (!credentials?.email) return null
-        
+
         const email = credentials.email.toLowerCase()
-        const role = credentials.role || 'student'
-        const name = credentials.name || (role === 'teacher' ? 'Вчитель' : 'Учень')
+        const name = credentials.name || 'Учень'
 
         try {
           let dbUser = await db.user.findUnique({
             where: { email },
           })
 
+          if (dbUser?.deletedAt) return null
+
           if (!dbUser) {
             dbUser = await db.user.create({
               data: {
                 email,
                 name,
-                role,
+                role: 'student',
                 lastLoginAt: new Date(),
               },
             })
           } else {
-            // Оновлюємо роль якщо входимо через відповідну кнопку швидкого входу
             dbUser = await db.user.update({
               where: { email },
-              data: {
-                role,
-                lastLoginAt: new Date(),
-              },
+              data: { lastLoginAt: new Date() },
             })
           }
 
@@ -82,6 +80,8 @@ export const authOptions: NextAuthOptions = {
         const existingUser = await db.user.findUnique({
           where: { email: user.email! },
         })
+
+        if (existingUser?.deletedAt) return false
 
         if (!existingUser) {
           // Створюємо нового користувача

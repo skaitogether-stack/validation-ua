@@ -1,35 +1,17 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
-import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 export function Header() {
   const { data: session } = useSession()
   const pathname = usePathname()
-  const [switching, setSwitching] = useState(false)
 
   if (!session) return null
 
-  const isTeacher = session.user?.role === 'teacher' || session.user?.role === 'admin'
-
-  async function handleSwitchRole() {
-    setSwitching(true)
-    try {
-      const res = await fetch('/api/user/switch-role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-      if (res.ok) {
-        window.location.reload()
-      }
-    } catch (e) {
-      console.error('Error switching role:', e)
-    } finally {
-      setSwitching(false)
-    }
-  }
+  const isAdmin = session.user?.role === 'admin'
+  const isTeacher = session.user?.role === 'teacher' || isAdmin
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md">
@@ -48,6 +30,18 @@ export function Header() {
           <div className="hidden sm:flex items-center gap-2">
             {isTeacher ? (
               <>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                      pathname.startsWith('/admin')
+                        ? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    🛠️ Адмінка школи
+                  </Link>
+                )}
                 <Link
                   href="/teacher"
                   className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
@@ -92,28 +86,6 @@ export function Header() {
             >
               {isTeacher ? '🎓 Вчитель' : '🎒 Учень'}
             </span>
-
-            {/* Кнопка швидкої зміни ролі */}
-            <button
-              onClick={handleSwitchRole}
-              disabled={switching}
-              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-gray-800 transition-colors disabled:opacity-50"
-              title="Перемкнути роль"
-            >
-              <svg
-                className={`w-4 h-4 ${switching ? 'animate-spin' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.228 8H18.22m-14 4h2.582"
-                />
-              </svg>
-            </button>
           </div>
 
           <div className="h-6 w-px bg-gray-200"></div>

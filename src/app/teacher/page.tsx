@@ -7,29 +7,11 @@ import { TeacherCabinetClient } from '../../components/TeacherCabinetClient'
 
 export const dynamic = 'force-dynamic'
 
-interface Props {
-  searchParams: Promise<{ setRole?: string }>
-}
-
-export default async function TeacherCabinetPage({ searchParams }: Props) {
-  const resolvedSearchParams = await searchParams
-  const setRole = resolvedSearchParams.setRole
-
+export default async function TeacherCabinetPage() {
   const session = await getServerSession(authOptions)
 
   if (!session) {
     redirect('/login')
-  }
-
-  // Оновлюємо роль користувача на вчителя перед перевіркою, якщо є параметр setRole
-  if (setRole === 'teacher' && (session.user?.email || session.user?.id)) {
-    await db.user.update({
-      where: session.user.email 
-        ? { email: session.user.email.toLowerCase() } 
-        : { id: session.user.id },
-      data: { role: 'teacher' }
-    })
-    redirect('/teacher')
   }
 
   // Перевірка ролі (вчитель або адмін)

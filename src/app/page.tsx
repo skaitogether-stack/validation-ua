@@ -3,32 +3,15 @@ import { redirect } from 'next/navigation'
 import { SubjectCard } from '../components/SubjectCard'
 import { subjects } from '../data/subjects'
 import { authOptions } from './api/auth/[...nextauth]/route'
-import { db } from '../lib/db'
 
 export const dynamic = 'force-dynamic'
 
-interface Props {
-  searchParams: Promise<{ setRole?: string }>
-}
-
-export default async function HomePage({ searchParams }: Props) {
-  const resolvedSearchParams = await searchParams
-  const setRole = resolvedSearchParams.setRole
-
+export default async function HomePage() {
   // Перевіряємо сесію на сервері
   const session = await getServerSession(authOptions)
 
   // Якщо не залогінений — редіректимо на /login
   if (!session) redirect('/login')
-
-  // Оновлюємо роль користувача, якщо задано параметр setRole
-  if (setRole === 'student' && session.user?.id) {
-    await db.user.update({
-      where: { id: session.user.id },
-      data: { role: 'student' }
-    })
-    redirect('/')
-  }
 
   return (
     <main className="max-w-3xl mx-auto p-6">
