@@ -71,6 +71,16 @@ export function Header() {
                 🎒 Навчальна панель
               </Link>
             )}
+            <Link
+              href="/dictation"
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                pathname.startsWith('/dictation')
+                  ? 'bg-amber-50 text-amber-700 border border-amber-100'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              📝 Диктант
+            </Link>
           </div>
 
           <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>
