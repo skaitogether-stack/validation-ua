@@ -10,6 +10,34 @@ export function Header() {
 
   if (!session) return null
 
+  // Диктант — окремий продукт за прямим посиланням, без навігації кабінетів
+  if (pathname.startsWith('/dictation')) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md">
+        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/dictation" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <span className="text-2xl">📝</span>
+            <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
+              Validation · Диктант
+            </span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:block text-sm font-bold text-gray-800">{session.user?.name}</span>
+            {session.user?.image && (
+              <img src={session.user.image} className="w-8 h-8 rounded-full border border-gray-100 object-cover" alt="Аватар" />
+            )}
+            <button
+              onClick={() => signOut({ callbackUrl: '/dictation' })}
+              className="px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-50 text-red-500 text-sm transition-all"
+            >
+              Вийти
+            </button>
+          </div>
+        </div>
+      </header>
+    )
+  }
+
   const isAdmin = session.user?.role === 'admin'
   const isTeacher = session.user?.role === 'teacher' || isAdmin
 
@@ -71,16 +99,6 @@ export function Header() {
                 🎒 Навчальна панель
               </Link>
             )}
-            <Link
-              href="/dictation"
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                pathname.startsWith('/dictation')
-                  ? 'bg-amber-50 text-amber-700 border border-amber-100'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              📝 Диктант
-            </Link>
           </div>
 
           <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>
