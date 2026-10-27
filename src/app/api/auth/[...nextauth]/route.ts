@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 
 export const dynamic = 'force-dynamic'
 import { db } from '../../../../lib/db'
+import { logLogin } from '../../../../lib/loginLog'
 
 export const authOptions: NextAuthOptions = {
   // НЕ використовуємо PrismaAdapter — він конфліктує з Prisma 7 WASM engine.
@@ -14,7 +15,9 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    CredentialsProvider({
+    // Вхід лише за email без пароля — тільки для локальної розробки й тестів.
+    // На продакшні він дозволив би будь-кому увійти під чужим email (зокрема адміна школи).
+    ...(process.env.NODE_ENV === 'production' ? [] : [CredentialsProvider({
       id: 'credentials',
       name: 'Credentials',
       credentials: {
@@ -36,6 +39,7 @@ export const authOptions: NextAuthOptions = {
 
           if (dbUser?.deletedAt) return null
 
+          const isNewUser = !dbUser
           if (!dbUser) {
             dbUser = await db.user.create({
               data: {
@@ -57,13 +61,14 @@ export const authOptions: NextAuthOptions = {
             name: dbUser.name,
             email: dbUser.email,
             role: dbUser.role,
+            isNewUser,
           }
         } catch (e) {
           console.error('Error during credentials authorization:', e)
           return null
         }
       }
-    }),
+    })]),
   ],
 
   session: {
@@ -71,9 +76,19 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async signIn({ user, account, profile }) {
-      // Для Credentials входу не потрібні додаткові дії в signIn
-      if (account?.provider === 'credentials') return true
+    async signIn({ user, account, profile, credentials }) {
+      // Для Credentials користувача вже збережено в authorize — лише фіксуємо вхід
+      if (account?.provider === 'credentials') {
+        await logLogin({
+          userId: user.id,
+          email: user.email,
+          provider: 'credentials',
+          isNewUser: Boolean((user as { isNewUser?: boolean }).isNewUser),
+          // При вході через форму cookie з callback-url оновлюється лише у відповіді, тому беремо його з тіла запиту
+          callbackUrl: typeof credentials?.callbackUrl === 'string' ? credentials.callbackUrl : undefined,
+        })
+        return true
+      }
 
       try {
         // Перевіряємо, чи є такий користувач у БД
@@ -83,9 +98,10 @@ export const authOptions: NextAuthOptions = {
 
         if (existingUser?.deletedAt) return false
 
+        let dbUser
         if (!existingUser) {
           // Створюємо нового користувача
-          await db.user.create({
+          dbUser = await db.user.create({
             data: {
               email: user.email,
               name: user.name,
@@ -96,7 +112,7 @@ export const authOptions: NextAuthOptions = {
           })
         } else {
           // Оновлюємо дані (ім'я, аватарку, останній вхід)
-          await db.user.update({
+          dbUser = await db.user.update({
             where: { email: user.email! },
             data: {
               name: user.name,
@@ -105,6 +121,13 @@ export const authOptions: NextAuthOptions = {
             },
           })
         }
+
+        await logLogin({
+          userId: dbUser.id,
+          email: dbUser.email,
+          provider: account?.provider ?? 'unknown',
+          isNewUser: !existingUser,
+        })
       } catch (e) {
         console.error('Error saving user to DB:', e)
         // Дозволяємо вхід навіть якщо БД недоступна
