@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
+import { headers } from 'next/headers'
 import { authOptions } from '../api/auth/[...nextauth]/route'
 import { DictationClient } from '../../components/DictationClient'
 import { DictationSignIn } from '../../components/DictationSignIn'
+import { detectInAppBrowser } from '../../lib/inAppBrowser'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +29,10 @@ export default async function DictationPage() {
   const session = await getServerSession(authOptions)
 
   // Окремий від кабінетів вхід: після авторизації користувач повертається одразу сюди
-  if (!session) return <DictationSignIn />
+  if (!session) {
+    const inApp = detectInAppBrowser((await headers()).get('user-agent'))
+    return <DictationSignIn inApp={inApp} />
+  }
 
   return (
     <main className="max-w-3xl mx-auto p-6">

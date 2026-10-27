@@ -54,8 +54,25 @@ model User {
   studentClasses  ClassStudent[]  @relation("StudentClasses")
   teacherClasses  ClassTeacher[]  @relation("TeacherClasses")
   invitesSent     Invite[]        @relation("InvitesSent")
+  loginEvents     LoginEvent[]
 
   @@index([schoolId])
+}
+
+// Журнал входів: окремий запис на кожну успішну авторизацію
+model LoginEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String?
+  provider  String              // google | credentials
+  isNewUser Boolean  @default(false)
+  source    String?             // dictation | cabinet | teacher | invite — звідки почався вхід
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model VerificationToken {
