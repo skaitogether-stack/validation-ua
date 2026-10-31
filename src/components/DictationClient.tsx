@@ -5,11 +5,9 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 interface WordItem {
   word: string
   translation: string
-  alternatives: string[]
 }
 
 type Step = 'input' | 'review' | 'train'
-type Phase = 'toOriginal' | 'toTranslation'
 
 const STORAGE_KEY = 'validation:dictation:words'
 const MAX_IMAGE_SIDE = 2000
@@ -25,16 +23,8 @@ function normalize(value: string): string {
     .replace(/[.!?,;:]+$/, '')
 }
 
-function acceptedAnswers(item: WordItem, phase: Phase): string[] {
-  if (phase === 'toOriginal') return [item.word]
-  // Якщо переклад записано як «великий, значний» — кожен варіант теж правильний
-  const variants = [item.translation, ...item.translation.split(/[,;/]/), ...item.alternatives]
-  return variants.map(v => v.trim()).filter(Boolean)
-}
-
-function isCorrect(answer: string, item: WordItem, phase: Phase): boolean {
-  const given = normalize(answer)
-  return acceptedAnswers(item, phase).some(v => normalize(v) === given)
+function isCorrect(answer: string, item: WordItem): boolean {
+  return normalize(answer) === normalize(item.word)
 }
 
 function shuffle<T>(list: T[]): T[] {
@@ -303,7 +293,7 @@ function ReviewStep({
               />
               <input
                 value={item.translation}
-                onChange={e => update(i, { translation: e.target.value, alternatives: [] })}
+                onChange={e => update(i, { translation: e.target.value })}
                 className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm"
                 placeholder="Переклад"
               />
@@ -318,7 +308,7 @@ function ReviewStep({
           ))}
         </div>
         <button
-          onClick={() => onChange([...items, { word: '', translation: '', alternatives: [] }])}
+          onClick={() => onChange([...items, { word: '', translation: '' }])}
           className="mt-3 text-sm font-semibold text-blue-600 hover:underline"
         >
           + Додати рядок
@@ -349,11 +339,6 @@ function ReviewStep({
 
 /* ---------- Крок 3: тренування ---------- */
 
-const PHASE_INFO: Record<Phase, { title: string; hint: string }> = {
-  toOriginal: { title: 'Етап 1 з 2: напишіть слово мовою оригіналу', hint: 'Переклад → слово' },
-  toTranslation: { title: 'Етап 2 з 2: напишіть переклад українською', hint: 'Слово → переклад' }
-}
-
 interface Feedback {
   correct: boolean
   expected: string
@@ -361,11 +346,9 @@ interface Feedback {
 
 interface RoundSummary {
   errors: number
-  nextPhase: Phase | 'done'
 }
 
 function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void }) {
-  const [phase, setPhase] = useState<Phase>('toOriginal')
   const [round, setRound] = useState(1)
   const [order, setOrder] = useState(() => shuffle(items.map((_, i) => i)))
   const [position, setPosition] = useState(0)
@@ -385,9 +368,9 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
 
   const check = () => {
     if (!answer.trim()) return
-    const correct = isCorrect(answer, item, phase)
+    const correct = isCorrect(answer, item)
     if (!correct) setRoundErrors(e => e + 1)
-    setFeedback({ correct, expected: phase === 'toOriginal' ? item.word : item.translation })
+    setFeedback({ correct, expected: item.word })
   }
 
   const next = () => {
@@ -397,19 +380,12 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
       setPosition(position + 1)
       return
     }
-    // Кінець раунду: етап завершується лише раундом без жодної помилки
-    const nextPhase = roundErrors > 0 ? phase : phase === 'toOriginal' ? 'toTranslation' : 'done'
-    setSummary({ errors: roundErrors, nextPhase })
+    // Кінець раунду: тренування завершується лише раундом без жодної помилки
+    setSummary({ errors: roundErrors })
   }
 
   const startNextRound = () => {
-    if (!summary || summary.nextPhase === 'done') return
-    if (summary.nextPhase !== phase) {
-      setPhase(summary.nextPhase)
-      setRound(1)
-    } else {
-      setRound(r => r + 1)
-    }
+    setRound(r => r + 1)
     setOrder(shuffle(items.map((_, i) => i)))
     setPosition(0)
     setRoundErrors(0)
@@ -417,24 +393,17 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
   }
 
   if (summary) {
-    const done = summary.nextPhase === 'done'
-    const phaseChanged = summary.nextPhase !== phase
+    const done = summary.errors === 0
     return (
       <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center flex flex-col items-center gap-4">
-        <div className="text-5xl">{done ? '🏆' : phaseChanged ? '🎉' : '💪'}</div>
+        <div className="text-5xl">{done ? '🏆' : '💪'}</div>
         <h2 className="text-xl font-bold">
-          {done
-            ? 'Готово до диктанту!'
-            : phaseChanged
-              ? 'Етап 1 пройдено без помилок!'
-              : `Раунд ${round}: помилок — ${summary.errors}`}
+          {done ? 'Готово до диктанту!' : `Раунд ${round}: помилок — ${summary.errors}`}
         </h2>
         <p className="text-sm text-gray-500 max-w-md">
           {done
-            ? 'Ви без помилок написали всі слова в обидва боки.'
-            : phaseChanged
-              ? 'Тепер навпаки: бачите слово мовою оригіналу — пишете переклад українською.'
-              : 'Етап закінчується лише тоді, коли всі слова написано без жодної помилки. Ще раунд — у новому порядку.'}
+            ? 'Ви написали всі слова без жодної помилки.'
+            : 'Тренування закінчується лише тоді, коли всі слова написано без жодної помилки. Ще раунд — у новому порядку.'}
         </p>
         <div className="flex gap-3">
           <button onClick={onExit} className="px-5 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100">
@@ -446,7 +415,7 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
               onClick={startNextRound}
               className="px-5 py-3 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700"
             >
-              {phaseChanged ? 'Почати етап 2' : 'Наступний раунд'}
+              Наступний раунд
             </button>
           )}
         </div>
@@ -454,12 +423,10 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
     )
   }
 
-  const prompt = phase === 'toOriginal' ? item.translation : item.word
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between text-sm text-gray-500">
-        <span className="font-semibold text-gray-700">{PHASE_INFO[phase].title}</span>
+        <span className="font-semibold text-gray-700">Напишіть слово мовою оригіналу</span>
         <button onClick={onExit} className="hover:text-gray-800">Вийти</button>
       </div>
       <div className="flex items-center justify-between text-xs text-gray-400">
@@ -474,8 +441,7 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
       </div>
 
       <div className="rounded-2xl border border-gray-200 bg-white p-8 flex flex-col items-center gap-6">
-        <span className="text-xs uppercase tracking-wide text-gray-400">{PHASE_INFO[phase].hint}</span>
-        <div className="text-3xl font-bold text-center break-words">{prompt}</div>
+        <div className="text-3xl font-bold text-center break-words">{item.translation}</div>
 
         <form
           className="w-full max-w-md flex flex-col gap-3"
@@ -494,7 +460,7 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck={false}
-            placeholder={phase === 'toOriginal' ? 'Напишіть слово' : 'Напишіть переклад'}
+            placeholder="Напишіть слово"
             className={`w-full rounded-xl border-2 px-4 py-3 text-lg text-center focus:outline-none ${
               feedback
                 ? feedback.correct
