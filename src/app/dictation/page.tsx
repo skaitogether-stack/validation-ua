@@ -5,6 +5,8 @@ import { authOptions } from '../api/auth/[...nextauth]/route'
 import { DictationClient } from '../../components/DictationClient'
 import { DictationSignIn } from '../../components/DictationSignIn'
 import { detectInAppBrowser } from '../../lib/inAppBrowser'
+import { db } from '../../lib/db'
+import { parseWordsJson } from '../../lib/dictation'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,13 +36,16 @@ export default async function DictationPage() {
     return <DictationSignIn inApp={inApp} />
   }
 
+  const wordSet = await db.dictationWordSet.findUnique({ where: { userId: session.user.id } })
+  const saved = wordSet && { items: parseWordsJson(wordSet.wordsJson), updatedAt: wordSet.updatedAt.toISOString() }
+
   return (
     <main className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-1">📝 Словниковий диктант</h1>
       <p className="text-sm text-gray-500 mb-6">
         Завантажте фото зі словами або вставте їх текстом — ми додамо переклад і підготуємо тренування.
       </p>
-      <DictationClient />
+      <DictationClient initialSaved={saved} />
     </main>
   )
 }

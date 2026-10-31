@@ -3,6 +3,20 @@ export interface VocabularyItem {
   translation: string
 }
 
+export interface SavedWordSet {
+  items: VocabularyItem[]
+  updatedAt: string
+}
+
+export function parseWordsJson(json: string): VocabularyItem[] {
+  try {
+    const parsed = JSON.parse(json)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
 export interface ImageInput {
   mimeType: string
   base64: string
