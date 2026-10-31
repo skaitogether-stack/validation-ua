@@ -1,15 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-
-interface WordItem {
-  word: string
-  translation: string
-}
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { SavedWordSet, VocabularyItem as WordItem } from '../lib/dictation'
 
 type Step = 'input' | 'review' | 'train'
 
-const STORAGE_KEY = 'validation:dictation:words'
 const MAX_IMAGE_SIDE = 2000
 
 // Порівнюємо без урахування регістру, зайвих пробілів, різних апострофів та кінцевої пунктуації
@@ -63,49 +58,58 @@ function mergeItems(current: WordItem[], incoming: WordItem[]): WordItem[] {
   return merged
 }
 
-export function DictationClient() {
+// 1 слово, 2 слова, 5 слів
+function wordsLabel(n: number): string {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  if (mod10 === 1 && mod100 !== 11) return `${n} слово`
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${n} слова`
+  return `${n} слів`
+}
+
+function sameItems(a: WordItem[], b: WordItem[]): boolean {
+  const key = (list: WordItem[]) => JSON.stringify(list.map(i => [i.word.trim(), i.translation.trim()]))
+  return key(a) === key(b)
+}
+
+export function DictationClient({ initialSaved }: { initialSaved: SavedWordSet | null }) {
   const [step, setStep] = useState<Step>('input')
   const [items, setItems] = useState<WordItem[]>([])
-  const [savedDismissed, setSavedDismissed] = useState(false)
-  // Збережений список читаємо лише на клієнті, щоб не зламати гідратацію
-  const savedRaw = useSyncExternalStore(
-    () => () => {},
-    () => {
-      try {
-        return localStorage.getItem(STORAGE_KEY)
-      } catch {
-        return null
-      }
-    },
-    () => null
-  )
-  const savedItems = useMemo<WordItem[]>(() => {
-    if (savedDismissed || !savedRaw) return []
-    try {
-      return JSON.parse(savedRaw)
-    } catch {
-      return []
-    }
-  }, [savedRaw, savedDismissed])
+  const [saved, setSaved] = useState(initialSaved)
 
-  const saveItems = (next: WordItem[]) => {
-    setItems(next)
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-    } catch {}
+  const saveSet = async (next: WordItem[]) => {
+    const res = await fetch('/api/dictation/words', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: next })
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Не вдалося зберегти')
+    setSaved(data)
+  }
+
+  const deleteSet = async () => {
+    const res = await fetch('/api/dictation/words', { method: 'DELETE' })
+    if (!res.ok) throw new Error('Не вдалося видалити')
+    setSaved(null)
   }
 
   if (step === 'input') {
     return (
       <InputStep
         existingCount={items.length}
-        savedItems={items.length === 0 ? savedItems : []}
-        onRestore={() => {
-          setItems(savedItems)
+        saved={items.length === 0 ? saved : null}
+        onRepeat={() => {
+          setItems(saved?.items ?? [])
+          setStep('train')
+        }}
+        onEdit={() => {
+          setItems(saved?.items ?? [])
           setStep('review')
         }}
+        onDelete={deleteSet}
         onParsed={incoming => {
-          saveItems(mergeItems(items, incoming))
+          setItems(mergeItems(items, incoming))
           setStep('review')
         }}
         onBack={items.length > 0 ? () => setStep('review') : undefined}
@@ -117,11 +121,12 @@ export function DictationClient() {
     return (
       <ReviewStep
         items={items}
-        onChange={saveItems}
+        saved={saved}
+        onSave={saveSet}
+        onChange={setItems}
         onAddMore={() => setStep('input')}
         onReset={() => {
-          saveItems([])
-          setSavedDismissed(true)
+          setItems([])
           setStep('input')
         }}
         onStart={() => setStep('train')}
@@ -129,21 +134,69 @@ export function DictationClient() {
     )
   }
 
-  return <TrainStep items={items} onExit={() => setStep('review')} />
+  return <TrainStep items={items} saved={saved} onSave={saveSet} onExit={() => setStep('review')} />
+}
+
+// Кнопка збереження єдиного набору: попереджає, якщо замінить уже збережений
+function SaveSetButton({
+  items,
+  saved,
+  onSave
+}: {
+  items: WordItem[]
+  saved: SavedWordSet | null
+  onSave: (items: WordItem[]) => Promise<void>
+}) {
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  if (saved && sameItems(items, saved.items)) {
+    return <span className="px-5 py-3 text-sm font-semibold text-emerald-700">✅ Набір збережено</span>
+  }
+
+  const save = async () => {
+    setError('')
+    setSaving(true)
+    try {
+      await onSave(items)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Не вдалося зберегти')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <button
+        onClick={save}
+        disabled={saving || items.length === 0}
+        className="px-5 py-3 rounded-xl text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-100 hover:bg-blue-100 disabled:opacity-50"
+      >
+        {saving ? 'Зберігаємо…' : '💾 Зберегти набір для повторення'}
+      </button>
+      {saved && <span className="text-xs text-gray-400">Замінить збережений набір ({wordsLabel(saved.items.length)})</span>}
+      {error && <span className="text-xs text-red-600">{error}</span>}
+    </div>
+  )
 }
 
 /* ---------- Крок 1: фото або текст ---------- */
 
 function InputStep({
   existingCount,
-  savedItems,
-  onRestore,
+  saved,
+  onRepeat,
+  onEdit,
+  onDelete,
   onParsed,
   onBack
 }: {
   existingCount: number
-  savedItems: WordItem[]
-  onRestore: () => void
+  saved: SavedWordSet | null
+  onRepeat: () => void
+  onEdit: () => void
+  onDelete: () => Promise<void>
   onParsed: (items: WordItem[]) => void
   onBack?: () => void
 }) {
@@ -154,6 +207,16 @@ function InputStep({
 
   const previews = useMemo(() => files.map(f => URL.createObjectURL(f)), [files])
   useEffect(() => () => previews.forEach(URL.revokeObjectURL), [previews])
+
+  const removeSet = async () => {
+    if (!window.confirm('Видалити збережений набір слів?')) return
+    setError('')
+    try {
+      await onDelete()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Не вдалося видалити')
+    }
+  }
 
   const submit = async () => {
     setError('')
@@ -177,15 +240,34 @@ function InputStep({
 
   return (
     <div className="flex flex-col gap-4">
-      {savedItems.length > 0 && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-          <span className="text-sm text-blue-800">У вас є збережений список: {savedItems.length} слів</span>
-          <button
-            onClick={onRestore}
-            className="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700"
-          >
-            Відкрити
-          </button>
+      {saved && (
+        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+          <h2 className="font-semibold text-blue-900">📚 Ваш набір: {wordsLabel(saved.items.length)}</h2>
+          <p className="text-xs text-blue-700 mt-1">
+            Збережено{' '}
+            {new Date(saved.updatedAt).toLocaleDateString('uk-UA', {
+              day: 'numeric',
+              month: 'long',
+              timeZone: 'Europe/Kyiv'
+            })}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              onClick={onRepeat}
+              className="px-5 py-3 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              ▶ Повторити
+            </button>
+            <button
+              onClick={onEdit}
+              className="px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50"
+            >
+              Редагувати
+            </button>
+            <button onClick={removeSet} className="px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50">
+              Видалити
+            </button>
+          </div>
         </div>
       )}
 
@@ -258,12 +340,16 @@ function InputStep({
 
 function ReviewStep({
   items,
+  saved,
+  onSave,
   onChange,
   onAddMore,
   onReset,
   onStart
 }: {
   items: WordItem[]
+  saved: SavedWordSet | null
+  onSave: (items: WordItem[]) => Promise<void>
   onChange: (items: WordItem[]) => void
   onAddMore: () => void
   onReset: () => void
@@ -315,6 +401,8 @@ function ReviewStep({
         </button>
       </div>
 
+      <SaveSetButton items={valid} saved={saved} onSave={onSave} />
+
       <div className="flex flex-wrap gap-3">
         <button onClick={onReset} className="px-5 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50">
           Новий список
@@ -348,7 +436,17 @@ interface RoundSummary {
   errors: number
 }
 
-function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void }) {
+function TrainStep({
+  items,
+  saved,
+  onSave,
+  onExit
+}: {
+  items: WordItem[]
+  saved: SavedWordSet | null
+  onSave: (items: WordItem[]) => Promise<void>
+  onExit: () => void
+}) {
   const [round, setRound] = useState(1)
   const [order, setOrder] = useState(() => shuffle(items.map((_, i) => i)))
   const [position, setPosition] = useState(0)
@@ -384,8 +482,8 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
     setSummary({ errors: roundErrors })
   }
 
-  const startNextRound = () => {
-    setRound(r => r + 1)
+  const startRound = (nextRound: number) => {
+    setRound(nextRound)
     setOrder(shuffle(items.map((_, i) => i)))
     setPosition(0)
     setRoundErrors(0)
@@ -405,14 +503,22 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
             ? 'Ви написали всі слова без жодної помилки.'
             : 'Тренування закінчується лише тоді, коли всі слова написано без жодної помилки. Ще раунд — у новому порядку.'}
         </p>
-        <div className="flex gap-3">
+        {done && <SaveSetButton items={items} saved={saved} onSave={onSave} />}
+        <div className="flex flex-wrap justify-center gap-3">
           <button onClick={onExit} className="px-5 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100">
             До списку слів
           </button>
-          {!done && (
+          {done ? (
+            <button
+              onClick={() => startRound(1)}
+              className="px-5 py-3 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Повторити ще раз
+            </button>
+          ) : (
             <button
               ref={continueRef}
-              onClick={startNextRound}
+              onClick={() => startRound(round + 1)}
               className="px-5 py-3 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700"
             >
               Наступний раунд
@@ -427,7 +533,7 @@ function TrainStep({ items, onExit }: { items: WordItem[]; onExit: () => void })
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between text-sm text-gray-500">
         <span className="font-semibold text-gray-700">Напишіть слово мовою оригіналу</span>
-        <button onClick={onExit} className="hover:text-gray-800">Вийти</button>
+        <button onClick={onExit} className="hover:text-gray-800">До списку слів</button>
       </div>
       <div className="flex items-center justify-between text-xs text-gray-400">
         <span>Раунд {round} · {position + 1} / {order.length}</span>
