@@ -1,7 +1,6 @@
 export interface VocabularyItem {
   word: string
   translation: string
-  alternatives: string[]
 }
 
 export interface ImageInput {
@@ -24,13 +23,12 @@ const PROMPT = `
    - Зберігайте написання як в оригіналі (артиклі, частку "to" для дієслів, великі літери для німецьких іменників тощо).
    - Не дублюйте слова.
 2. Для кожного слова дайте переклад українською мовою — найвживаніший варіант, який показав би популярний онлайн-перекладач (Google Translate). Один основний варіант, без пояснень і без дужок.
-3. Додайте до 3 інших правильних українських варіантів перекладу (синонімів), які теж можна зарахувати як правильну відповідь. Якщо таких немає — порожній масив.
 
 Відповідь — ТІЛЬКИ валідний JSON такого вигляду:
 {
   "sourceLanguage": "назва мови оригіналу українською, напр. англійська",
   "items": [
-    { "word": "apple", "translation": "яблуко", "alternatives": [] }
+    { "word": "apple", "translation": "яблуко" }
   ]
 }`
 
@@ -92,13 +90,7 @@ export async function extractVocabulary(text: string, images: ImageInput[]): Pro
     const translation = String(item?.translation ?? '').trim()
     if (!word || !translation || seen.has(word.toLowerCase())) continue
     seen.add(word.toLowerCase())
-    items.push({
-      word,
-      translation,
-      alternatives: Array.isArray(item.alternatives)
-        ? item.alternatives.map(a => String(a).trim()).filter(Boolean)
-        : []
-    })
+    items.push({ word, translation })
   }
 
   return { sourceLanguage: String(parsed.sourceLanguage ?? ''), items }
