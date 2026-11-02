@@ -4,21 +4,27 @@ import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+const STANDALONE = [
+  { href: '/dictation', icon: '📝', title: 'Диктант' },
+  { href: '/biology', icon: '🧬', title: 'Біологія' }
+]
+
 export function Header() {
   const { data: session } = useSession()
   const pathname = usePathname()
 
   if (!session) return null
 
-  // Диктант — окремий продукт за прямим посиланням, без навігації кабінетів
-  if (pathname.startsWith('/dictation')) {
+  // Диктант і Біологія — окремі продукти за прямим посиланням, без навігації кабінетів
+  const standalone = STANDALONE.find(p => pathname.startsWith(p.href))
+  if (standalone) {
     return (
       <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/dictation" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-            <span className="text-2xl">📝</span>
+          <Link href={standalone.href} className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <span className="text-2xl">{standalone.icon}</span>
             <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
-              Validation · Диктант
+              Validation · {standalone.title}
             </span>
           </Link>
           <div className="flex items-center gap-3">
@@ -27,7 +33,7 @@ export function Header() {
               <img src={session.user.image} className="w-8 h-8 rounded-full border border-gray-100 object-cover" alt="Аватар" />
             )}
             <button
-              onClick={() => signOut({ callbackUrl: '/dictation' })}
+              onClick={() => signOut({ callbackUrl: standalone.href })}
               className="px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-50 text-red-500 text-sm transition-all"
             >
               Вийти
