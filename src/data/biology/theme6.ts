@@ -1,4 +1,4 @@
-import type { SectionSource } from '.'
+import type { SectionSource } from '../topics'
 
 export const theme6: SectionSource = {
   section: 'Тема 6. Характерні риси та будова тварин',

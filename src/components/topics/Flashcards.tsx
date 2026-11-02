@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { Flashcard } from '../../data/biology'
+import type { Flashcard } from '../../data/topics'
 
 function shuffle<T>(list: T[]): T[] {
   const result = [...list]
