@@ -55,7 +55,10 @@ export function BiologyTopicClient({ topic }: { topic: BiologyTopic }) {
           ← До теми
         </button>
       )}
-      <h1 className="mt-2 text-2xl font-bold mb-1">
+      <div className="mt-2 text-sm font-bold text-emerald-700">
+        § {topic.paragraph} · {topic.section}
+      </div>
+      <h1 className="text-2xl font-bold mb-1">
         {topic.icon} {topic.title}
       </h1>
       <p className="text-sm text-gray-500 mb-6">{topic.desc}</p>
