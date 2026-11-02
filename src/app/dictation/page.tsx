@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { headers } from 'next/headers'
 import { authOptions } from '../api/auth/[...nextauth]/route'
 import { DictationClient } from '../../components/DictationClient'
-import { DictationSignIn } from '../../components/DictationSignIn'
+import { StandaloneSignIn } from '../../components/StandaloneSignIn'
 import { detectInAppBrowser } from '../../lib/inAppBrowser'
 import { db } from '../../lib/db'
 import { parseWordsJson } from '../../lib/dictation'
@@ -27,13 +27,29 @@ export const metadata: Metadata = {
   }
 }
 
+const SIGN_IN_STEPS = [
+  { icon: '📷', title: 'Сфотографуйте слова', text: 'Сторінку підручника чи зошита — або просто вставте список текстом.' },
+  { icon: '🌐', title: 'Отримайте переклад', text: 'Ми розпізнаємо слова й одразу додамо найуживаніший переклад.' },
+  { icon: '✍️', title: 'Тренуйтеся до нуля помилок', text: 'Бачите переклад — пишете слово. І так доки все не буде без помилок.' }
+]
+
 export default async function DictationPage() {
   const session = await getServerSession(authOptions)
 
   // Окремий від кабінетів вхід: після авторизації користувач повертається одразу сюди
   if (!session) {
     const inApp = detectInAppBrowser((await headers()).get('user-agent'))
-    return <DictationSignIn inApp={inApp} />
+    return (
+      <StandaloneSignIn
+        inApp={inApp}
+        callbackUrl="/dictation"
+        icon="📝"
+        title="Підготовка до словникового диктанту"
+        subtitle="Вивчайте нові слова з іноземної мови швидко й без зубріння."
+        steps={SIGN_IN_STEPS}
+        note="Безкоштовно. Вхід потрібен, щоб зберігати ваші списки слів."
+      />
+    )
   }
 
   const wordSet = await db.dictationWordSet.findUnique({ where: { userId: session.user.id } })

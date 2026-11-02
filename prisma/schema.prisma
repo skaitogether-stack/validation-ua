@@ -78,7 +78,7 @@ model LoginEvent {
   email     String?
   provider  String              // google | credentials
   isNewUser Boolean  @default(false)
-  source    String?             // dictation | cabinet | teacher | invite — звідки почався вхід
+  source    String?             // dictation | biology | cabinet | teacher | invite — звідки почався вхід
   userAgent String?
   createdAt DateTime @default(now())
 

@@ -13,6 +13,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
 
 const SOURCE_LABELS: Record<string, string> = {
   dictation: '📝 Диктант',
+  biology: '🧬 Біологія',
   cabinet: '🎒 Кабінет учня',
   teacher: '🏫 Кабінет вчителя / адміна',
   invite: '✉️ Запрошення',
@@ -73,6 +74,7 @@ export default async function StatsPage() {
     { label: 'Унікальних користувачів за 7 днів', value: new Set(week.map(e => e.userId ?? e.email)).size },
     { label: 'Нових користувачів за 7 днів', value: week.filter(e => e.isNewUser).length },
     { label: 'Нових з диктанту за 7 днів', value: week.filter(e => e.isNewUser && e.source === 'dictation').length },
+    { label: 'Нових з біології за 7 днів', value: week.filter(e => e.isNewUser && e.source === 'biology').length },
     { label: 'Усього користувачів', value: totalUsers }
   ]
 
@@ -80,7 +82,7 @@ export default async function StatsPage() {
   const byDay = new Map<string, DailyPoint>()
   for (let i = DAYS - 1; i >= 0; i--) {
     const key = dayKey(new Date(now.getTime() - i * DAY_MS))
-    byDay.set(key, { date: key, logins: 0, newUsers: 0, dictation: 0 })
+    byDay.set(key, { date: key, logins: 0, newUsers: 0, dictation: 0, biology: 0 })
   }
   for (const e of events) {
     const point = byDay.get(dayKey(e.createdAt))
@@ -88,6 +90,7 @@ export default async function StatsPage() {
     point.logins++
     if (e.isNewUser) point.newUsers++
     if (e.source === 'dictation') point.dictation++
+    if (e.source === 'biology') point.biology++
   }
 
   const sourceCounts = new Map<string, { logins: number; newUsers: number }>()
@@ -117,7 +120,7 @@ export default async function StatsPage() {
         <p className="text-sm text-gray-500">Останні {DAYS} днів · час київський</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {tiles.map(tile => (
           <div key={tile.label} className="rounded-2xl border border-gray-200 bg-white p-4">
             <div className="text-2xl font-bold text-gray-900">{tile.value}</div>

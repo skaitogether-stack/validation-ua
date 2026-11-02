@@ -4,11 +4,23 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import type { InAppBrowser } from '../lib/inAppBrowser'
 
-const STEPS = [
-  { icon: '📷', title: 'Сфотографуйте слова', text: 'Сторінку підручника чи зошита — або просто вставте список текстом.' },
-  { icon: '🌐', title: 'Отримайте переклад', text: 'Ми розпізнаємо слова й одразу додамо найуживаніший переклад.' },
-  { icon: '✍️', title: 'Тренуйтеся до нуля помилок', text: 'Бачите переклад — пишете слово. І так доки все не буде без помилок.' }
-]
+export interface SignInStep {
+  icon: string
+  title: string
+  text: string
+}
+
+// Окремий вхід для продуктів за прямим посиланням (диктант, біологія):
+// після авторизації користувач повертається на ту саму сторінку
+interface StandaloneSignInProps {
+  inApp: InAppBrowser | null
+  callbackUrl: string
+  icon: string
+  title: string
+  subtitle: string
+  steps: SignInStep[]
+  note: string
+}
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0 fill-current">
@@ -30,7 +42,7 @@ function externalBrowserUrl(platform: InAppBrowser['platform']): string {
 }
 
 // Google блокує вхід у вбудованих браузерах соцмереж, тож спершу переводимо людину у звичайний браузер
-function InAppBrowserNotice({ inApp }: { inApp: InAppBrowser }) {
+function InAppBrowserNotice({ inApp, callbackUrl }: { inApp: InAppBrowser; callbackUrl: string }) {
   const [copied, setCopied] = useState(false)
 
   const copyLink = async () => {
@@ -73,7 +85,7 @@ function InAppBrowserNotice({ inApp }: { inApp: InAppBrowser }) {
         </button>
       </div>
       <button
-        onClick={() => signIn('google', { callbackUrl: '/dictation' })}
+        onClick={() => signIn('google', { callbackUrl })}
         className="mt-3 w-full text-xs text-amber-700 underline"
       >
         Все одно спробувати увійти тут
@@ -82,20 +94,16 @@ function InAppBrowserNotice({ inApp }: { inApp: InAppBrowser }) {
   )
 }
 
-export function DictationSignIn({ inApp }: { inApp: InAppBrowser | null }) {
+export function StandaloneSignIn({ inApp, callbackUrl, icon, title, subtitle, steps, note }: StandaloneSignInProps) {
   return (
     <main className="min-h-screen bg-linear-to-br from-amber-50 via-slate-50 to-blue-50 flex items-center justify-center p-6">
       <div className="max-w-xl w-full text-center">
-        <div className="text-5xl mb-3">📝</div>
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900">
-          Підготовка до словникового диктанту
-        </h1>
-        <p className="mt-3 text-gray-500">
-          Вивчайте нові слова з іноземної мови швидко й без зубріння.
-        </p>
+        <div className="text-5xl mb-3">{icon}</div>
+        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900">{title}</h1>
+        <p className="mt-3 text-gray-500">{subtitle}</p>
 
         <div className="mt-8 grid gap-3 text-left">
-          {STEPS.map(step => (
+          {steps.map(step => (
             <div key={step.title} className="flex gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="text-2xl">{step.icon}</div>
               <div>
@@ -107,17 +115,17 @@ export function DictationSignIn({ inApp }: { inApp: InAppBrowser | null }) {
         </div>
 
         {inApp ? (
-          <InAppBrowserNotice inApp={inApp} />
+          <InAppBrowserNotice inApp={inApp} callbackUrl={callbackUrl} />
         ) : (
           <button
-            onClick={() => signIn('google', { callbackUrl: '/dictation' })}
+            onClick={() => signIn('google', { callbackUrl })}
             className="mt-8 w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all font-bold text-sm shadow-md shadow-blue-200 hover:shadow-lg cursor-pointer"
           >
             <GoogleIcon />
             Увійти через Google і почати
           </button>
         )}
-        <p className="mt-3 text-xs text-gray-400">Безкоштовно. Вхід потрібен, щоб зберігати ваші списки слів.</p>
+        <p className="mt-3 text-xs text-gray-400">{note}</p>
       </div>
     </main>
   )
