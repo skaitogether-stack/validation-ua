@@ -1,9 +1,9 @@
 'use client'
 
-import { useTopicProgress } from '../../lib/biologyProgress'
+import { useTopicProgress } from '../../lib/topicProgress'
 
-export function TopicProgressBadge({ topicId }: { topicId: string }) {
-  const progress = useTopicProgress(topicId)
+export function TopicProgressBadge({ progressKey, topicId }: { progressKey: string; topicId: string }) {
+  const progress = useTopicProgress(progressKey, topicId)
 
   if (progress.bestScore !== undefined) {
     const passed = progress.bestScore >= 80

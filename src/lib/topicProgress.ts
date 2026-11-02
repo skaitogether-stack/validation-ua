@@ -2,19 +2,21 @@
 
 import { useMemo, useSyncExternalStore } from 'react'
 
-// Прогрес у «Біології» зберігаємо в браузері: контент статичний, вхід не потрібен
+// Прогрес у предметах за параграфами (біологія, географія) зберігаємо в браузері: контент статичний.
+// Кожен предмет має свій ключ, бо id тем (p17, p18…) у предметах повторюються.
 
 export interface TopicProgress {
   flashcardsDone?: boolean
   bestScore?: number // найкращий результат тесту, %
 }
 
-const KEY = 'biology-progress'
-const CHANGE_EVENT = 'biology-progress-change'
+const CHANGE_EVENT = 'topic-progress-change'
 
-function readRaw(): string {
+const storageKey = (progressKey: string) => `${progressKey}-progress`
+
+function readRaw(progressKey: string): string {
   try {
-    return localStorage.getItem(KEY) ?? '{}'
+    return localStorage.getItem(storageKey(progressKey)) ?? '{}'
   } catch {
     return '{}'
   }
@@ -38,16 +40,16 @@ function subscribe(onChange: () => void) {
 }
 
 // На сервері прогресу немає, тож перший рендер збігається з серверним
-export function useTopicProgress(topicId: string): TopicProgress {
-  const raw = useSyncExternalStore(subscribe, readRaw, () => '{}')
+export function useTopicProgress(progressKey: string, topicId: string): TopicProgress {
+  const raw = useSyncExternalStore(subscribe, () => readRaw(progressKey), () => '{}')
   return useMemo(() => parse(raw)[topicId] ?? {}, [raw, topicId])
 }
 
-export function updateProgress(topicId: string, patch: TopicProgress) {
+export function updateProgress(progressKey: string, topicId: string, patch: TopicProgress) {
   try {
-    const all = parse(readRaw())
+    const all = parse(readRaw(progressKey))
     all[topicId] = { ...all[topicId], ...patch }
-    localStorage.setItem(KEY, JSON.stringify(all))
+    localStorage.setItem(storageKey(progressKey), JSON.stringify(all))
     window.dispatchEvent(new Event(CHANGE_EVENT))
   } catch {
     // приватний режим або заблоковане сховище — просто не зберігаємо

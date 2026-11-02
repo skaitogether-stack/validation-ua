@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { TestQuestion } from '../../data/biology'
+import type { TestQuestion } from '../../data/topics'
 
 const PASS_SCORE = 80
 
@@ -22,7 +22,7 @@ function prepare(questions: TestQuestion[]): TestQuestion[] {
   })
 }
 
-export function BiologyTest({
+export function TopicTest({
   questions,
   onFinish,
   onFlashcards

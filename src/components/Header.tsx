@@ -6,7 +6,8 @@ import { usePathname } from 'next/navigation'
 
 const STANDALONE = [
   { href: '/dictation', icon: '📝', title: 'Диктант' },
-  { href: '/biology', icon: '🧬', title: 'Біологія' }
+  { href: '/biology', icon: '🧬', title: 'Біологія' },
+  { href: '/geography', icon: '🌍', title: 'Географія' }
 ]
 
 export function Header() {
@@ -15,7 +16,7 @@ export function Header() {
 
   if (!session) return null
 
-  // Диктант і Біологія — окремі продукти за прямим посиланням, без навігації кабінетів
+  // Диктант, Біологія й Географія — окремі продукти за прямим посиланням, без навігації кабінетів
   const standalone = STANDALONE.find(p => pathname.startsWith(p.href))
   if (standalone) {
     return (

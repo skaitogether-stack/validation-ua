@@ -8,15 +8,16 @@ const STEPS = [
   { icon: '📝', title: 'Перевірте себе тестом', text: 'Одразу бачите правильну відповідь і пояснення до помилок.' }
 ]
 
-// Вхід у «Біологію», як і в диктант, окремий від кабінетів: після авторизації повертаємо на ту саму сторінку
-export async function BiologySignIn({ callbackUrl }: { callbackUrl: string }) {
+// Вхід у предмет за параграфами (біологія, географія), як і в диктант, окремий від кабінетів:
+// після авторизації повертаємо на ту саму сторінку
+export async function SubjectSignIn({ callbackUrl, icon, title }: { callbackUrl: string; icon: string; title: string }) {
   const inApp = detectInAppBrowser((await headers()).get('user-agent'))
   return (
     <StandaloneSignIn
       inApp={inApp}
       callbackUrl={callbackUrl}
-      icon="🧬"
-      title="Біологія, 7 клас"
+      icon={icon}
+      title={title}
       subtitle="Готуйтеся до уроків за параграфами підручника: відео, флешкарти й тести."
       steps={STEPS}
       note="Безкоштовно. Вхід через Google займає кілька секунд."

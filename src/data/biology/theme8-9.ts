@@ -1,4 +1,4 @@
-import type { SectionSource } from '.'
+import type { SectionSource } from '../topics'
 
 export const theme8and9: SectionSource[] = [
   {

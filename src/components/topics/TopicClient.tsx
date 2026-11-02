@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import type { BiologyTopic } from '../../data/biology'
-import { updateProgress, useTopicProgress, type TopicProgress } from '../../lib/biologyProgress'
+import type { Subject, Topic } from '../../data/topics'
+import { updateProgress, useTopicProgress, type TopicProgress } from '../../lib/topicProgress'
 import { Flashcards } from './Flashcards'
-import { BiologyTest } from './BiologyTest'
+import { TopicTest } from './TopicTest'
 
 type Mode = 'overview' | 'flashcards' | 'test'
 
@@ -39,15 +39,15 @@ function VideoPlayer({ src, title }: { src?: string; title: string }) {
   return <video src={src} controls playsInline preload="metadata" className="aspect-video w-full rounded-2xl bg-black" />
 }
 
-export function BiologyTopicClient({ topic }: { topic: BiologyTopic }) {
+export function TopicClient({ subject, topic }: { subject: Subject; topic: Topic }) {
   const [mode, setMode] = useState<Mode>('overview')
-  const progress = useTopicProgress(topic.id)
-  const saveProgress = (patch: TopicProgress) => updateProgress(topic.id, patch)
+  const progress = useTopicProgress(subject.progressKey, topic.id)
+  const saveProgress = (patch: TopicProgress) => updateProgress(subject.progressKey, topic.id, patch)
 
   return (
     <main className="max-w-3xl mx-auto p-6">
       {mode === 'overview' ? (
-        <Link href="/biology" className="text-sm text-gray-500 hover:text-gray-800">
+        <Link href={subject.href} className="text-sm text-gray-500 hover:text-gray-800">
           ← Усі теми
         </Link>
       ) : (
@@ -102,7 +102,7 @@ export function BiologyTopicClient({ topic }: { topic: BiologyTopic }) {
       )}
 
       {mode === 'test' && (
-        <BiologyTest
+        <TopicTest
           questions={topic.questions}
           onFinish={score =>
             saveProgress({ bestScore: Math.max(score, progress.bestScore ?? 0) })
