@@ -20,6 +20,7 @@ function sourceFromCallbackUrl(callbackUrl: string | undefined): string | null {
     return null
   }
   if (pathname.startsWith('/dictation')) return 'dictation'
+  if (pathname.startsWith('/biology')) return 'biology'
   if (pathname.startsWith('/teacher') || pathname.startsWith('/admin') || pathname.startsWith('/stats')) return 'teacher'
   if (pathname.startsWith('/invite')) return 'invite'
   return 'cabinet'

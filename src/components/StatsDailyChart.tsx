@@ -7,6 +7,7 @@ export interface DailyPoint {
   logins: number
   newUsers: number
   dictation: number
+  biology: number
 }
 
 const CHART_HEIGHT = 160
@@ -47,7 +48,7 @@ export function StatsDailyChart({ points }: { points: DailyPoint[] }) {
                 onMouseLeave={() => setActive(null)}
                 onFocus={() => setActive(i)}
                 onBlur={() => setActive(null)}
-                aria-label={`${formatDay(p.date)}: входів ${p.logins}, нових ${p.newUsers}, з диктанту ${p.dictation}`}
+                aria-label={`${formatDay(p.date)}: входів ${p.logins}, нових ${p.newUsers}, з диктанту ${p.dictation}, з біології ${p.biology}`}
                 className="group flex-1 h-full flex items-end justify-center cursor-default focus:outline-none"
               >
                 <span
@@ -76,6 +77,7 @@ export function StatsDailyChart({ points }: { points: DailyPoint[] }) {
           <div className="text-gray-600">Входів: <b className="text-gray-900">{hovered.logins}</b></div>
           <div className="text-gray-600">Нових користувачів: <b className="text-gray-900">{hovered.newUsers}</b></div>
           <div className="text-gray-600">З диктанту: <b className="text-gray-900">{hovered.dictation}</b></div>
+          <div className="text-gray-600">З біології: <b className="text-gray-900">{hovered.biology}</b></div>
         </div>
       )}
     </div>

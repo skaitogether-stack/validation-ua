@@ -1,7 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../api/auth/[...nextauth]/route'
 import { biologySections, biologyTopics } from '../../data/biology'
 import { TopicProgressBadge } from '../../components/biology/TopicProgressBadge'
+import { BiologySignIn } from '../../components/biology/BiologySignIn'
+
+export const dynamic = 'force-dynamic'
 
 const title = 'Біологія — Validation'
 const description = 'Біологія, 7 клас: відеопояснення, флешкарти та тести за параграфами підручника.'
@@ -19,7 +24,9 @@ export const metadata: Metadata = {
   }
 }
 
-export default function BiologyPage() {
+export default async function BiologyPage() {
+  if (!(await getServerSession(authOptions))) return <BiologySignIn callbackUrl="/biology" />
+
   return (
     <main className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-1">🧬 Біологія</h1>

@@ -2,12 +2,13 @@ import type { Metadata } from 'next'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { notFound } from 'next/navigation'
-import { biologyTopics, getBiologyTopic } from '../../../data/biology'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../../api/auth/[...nextauth]/route'
+import { getBiologyTopic } from '../../../data/biology'
 import { BiologyTopicClient } from '../../../components/biology/BiologyTopicClient'
+import { BiologySignIn } from '../../../components/biology/BiologySignIn'
 
-export function generateStaticParams() {
-  return biologyTopics.map(topic => ({ topicId: topic.id }))
-}
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ topicId: string }> }): Promise<Metadata> {
   const topic = getBiologyTopic((await params).topicId)
@@ -24,6 +25,7 @@ function availableVideo(video?: string): string | undefined {
 export default async function BiologyTopicPage({ params }: { params: Promise<{ topicId: string }> }) {
   const topic = getBiologyTopic((await params).topicId)
   if (!topic) notFound()
+  if (!(await getServerSession(authOptions))) return <BiologySignIn callbackUrl={`/biology/${topic.id}`} />
 
   return <BiologyTopicClient topic={{ ...topic, video: availableVideo(topic.video) }} />
 }
