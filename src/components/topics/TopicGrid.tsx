@@ -1,9 +1,21 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import type { Subject, Topic } from '../../data/topics'
 import { TopicProgressBadge } from './TopicProgressBadge'
 
 // Список параграфів предмета, згрупований за розділами підручника
-export function TopicGrid({ subject, sections, topics }: { subject: Subject; sections: string[]; topics: Topic[] }) {
+// sectionExtras — додаткова картка наприкінці розділу (напр. гра-повторення теми)
+export function TopicGrid({
+  subject,
+  sections,
+  topics,
+  sectionExtras
+}: {
+  subject: Subject
+  sections: string[]
+  topics: Topic[]
+  sectionExtras?: Record<string, ReactNode>
+}) {
   return (
     <div className="flex flex-col gap-8">
       {sections.map(section => (
@@ -36,6 +48,7 @@ export function TopicGrid({ subject, sections, topics }: { subject: Subject; sec
                   </div>
                 </Link>
               ))}
+            {sectionExtras?.[section]}
           </div>
         </section>
       ))}
