@@ -29,6 +29,9 @@ export function Header() {
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            <Link href="/" className="px-3 py-1.5 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
+              Усі розділи
+            </Link>
             <span className="hidden sm:block text-sm font-bold text-gray-800">{session.user?.name}</span>
             {session.user?.image && (
               <img src={session.user.image} className="w-8 h-8 rounded-full border border-gray-100 object-cover" alt="Аватар" />
@@ -95,22 +98,25 @@ export function Header() {
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  🎒 Перегляд учня
+                  🏠 Розділи
                 </Link>
               </>
-            ) : (
+            ) : null
+            /* Поділ на кабінети учня й вчителя тимчасово вимкнено
+            (
               <Link
                 href="/"
                 className="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-100"
               >
                 🎒 Навчальна панель
               </Link>
-            )}
+            )
+            */}
           </div>
 
-          <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>
+          {isTeacher && <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>}
 
-          {/* Інформація про роль */}
+          {/* Інформація про роль — тимчасово вимкнено разом з окремими входами учня й вчителя
           <div className="flex items-center gap-2">
             <span
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shadow-xs ${
@@ -124,6 +130,7 @@ export function Header() {
           </div>
 
           <div className="h-6 w-px bg-gray-200"></div>
+          */}
 
           {/* Дані профілю */}
           <div className="flex items-center gap-3">
@@ -146,7 +153,7 @@ export function Header() {
 
             {/* Вихід */}
             <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
+              onClick={() => signOut({ callbackUrl: '/' })}
               className="p-1.5 rounded-lg border border-red-100 hover:bg-red-50 text-red-500 transition-all hover:scale-105"
               title="Вийти з акаунту"
             >
