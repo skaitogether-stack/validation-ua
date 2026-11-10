@@ -1,5 +1,5 @@
 // Контент підрозділу «Географія»: підручник «Географія, 7 клас» (Кобернік, Коваленко, 2024),
-// одна тема = один параграф, починаючи з § 17.
+// одна тема = один параграф, починаючи з § 11.
 
 import { buildTopics, type Subject, type Topic } from '../topics'
 import { africa, southAmerica, australia } from './tropics'
