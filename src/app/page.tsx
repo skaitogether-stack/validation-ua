@@ -31,6 +31,13 @@ const SECTIONS = [
     title: 'Диктант',
     text: 'Словниковий диктант: сфотографуйте слова й тренуйтеся до нуля помилок.',
     accent: 'border-t-amber-400'
+  },
+  {
+    href: '/games',
+    icon: '🎲',
+    title: 'Ігри',
+    text: 'Міні-ігри для компанії, щоб відпочити й переключитися.',
+    accent: 'border-t-indigo-400'
   }
 ]
 
@@ -62,7 +69,7 @@ export default async function HomePage() {
       <h1 className="text-2xl font-bold mb-1">Оберіть розділ</h1>
       <p className="text-sm text-gray-500 mb-6">Перейдіть до предмета або до підготовки до словникового диктанту.</p>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         {SECTIONS.map(section => (
           <Link
             key={section.href}
