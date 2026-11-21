@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { headers } from 'next/headers'
 import { detectInAppBrowser } from '../../lib/inAppBrowser'
 import { StandaloneSignIn } from '../StandaloneSignIn'
@@ -20,6 +21,14 @@ export async function GamesSignIn({ callbackUrl }: { callbackUrl: string }) {
       subtitle="Міні-ігри для компанії, щоб відпочити й відволіктися."
       steps={STEPS}
       note="Безкоштовно. Вхід через Google займає кілька секунд."
+      extra={
+        <Link
+          href="/games/mafia/join"
+          className="mt-6 block rounded-2xl border border-indigo-100 bg-white p-4 text-sm font-bold text-indigo-700 shadow-sm"
+        >
+          🔑 Маєте код кімнати від друзів? Приєднатися без входу →
+        </Link>
+      }
     />
   )
 }

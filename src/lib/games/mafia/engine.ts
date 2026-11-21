@@ -5,6 +5,7 @@ import {
   ABSTAIN,
   type DayEvent,
   type GameAction,
+  type GameMode,
   type GameState,
   type NightEvent,
   type Player,
@@ -64,18 +65,20 @@ export function createGame(
   names: string[],
   settings: Settings,
   setup: RoleSetup,
-  rng: () => number = Math.random
+  opts: { rng?: () => number; ids?: string[]; mode?: GameMode } = {}
 ): GameState {
   const error = validateSetup(names.length, setup)
   if (error) throw new Error(error)
-  const roles = shuffle(buildRoles(names.length, setup), rng)
+  const roles = shuffle(buildRoles(names.length, setup), opts.rng)
   return {
     version: 1,
+    mode: opts.mode ?? 'local',
     settings,
-    players: names.map((name, i) => ({ id: `p${i + 1}`, name, role: roles[i], alive: true })),
+    players: names.map((name, i) => ({ id: opts.ids?.[i] ?? `p${i + 1}`, name, role: roles[i], alive: true })),
     round: 1,
     phase: 'reveal',
     turn: 0,
+    ready: [],
     nightChoices: {},
     lastDoctorTargetId: null,
     doctorSelfUsed: false,
@@ -108,8 +111,9 @@ export function nightQueue(state: GameState): Player[] {
   return alivePlayers(state)
 }
 
-// Чий зараз хід у колі (роздача ролей, ніч, таємне голосування)
+// Чий зараз хід у колі (роздача ролей, ніч, таємне голосування). В online черги немає.
 export function currentActor(state: GameState): Player | null {
+  if (state.mode === 'online') return null
   if (state.phase === 'reveal') return state.players[state.turn] ?? null
   if (state.phase === 'night') return nightQueue(state)[state.turn] ?? null
   if (state.phase === 'vote' && state.settings.voteMode === 'secret' && state.vote) {
@@ -193,6 +197,13 @@ function eliminate(players: Player[], id: string | null): Player[] {
   return players.map(p => (p.id === id ? { ...p, alive: false } : p))
 }
 
+// Хто робить нічний хід: у local — поточний у черзі, в online — переданий живий гравець
+function nightActor(state: GameState, actorId?: string): Player | null {
+  if (state.mode !== 'online') return currentActor(state)
+  const p = actorId ? state.players.find(pl => pl.id === actorId) : undefined
+  return p && p.alive ? p : null
+}
+
 function resolveNight(state: GameState): GameState {
   const alive = alivePlayers(state)
   const targetId = mafiaTarget(state)
@@ -236,6 +247,7 @@ function resolveNight(state: GameState): GameState {
     players,
     phase: 'morning',
     turn: 0,
+    ready: [],
     nightChoices: {},
     lastDoctorTargetId: doctorTargetId,
     doctorSelfUsed: state.doctorSelfUsed || (!!doctor && doctorTargetId === doctor.id),
@@ -291,21 +303,38 @@ function resolveVote(state: GameState): GameState {
 export function reduce(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'revealNext': {
-      if (state.phase !== 'reveal') return state
+      if (state.phase !== 'reveal' || state.mode === 'online') return state
       const turn = state.turn + 1
       if (turn >= state.players.length) return { ...state, phase: 'nightIntro', turn: 0 }
       return { ...state, turn }
     }
 
+    case 'ready': {
+      if (state.phase !== 'reveal' || state.mode !== 'online') return state
+      if (!state.players.some(p => p.id === action.actorId) || state.ready.includes(action.actorId)) return state
+      const ready = [...state.ready, action.actorId]
+      if (ready.length >= state.players.length) return { ...state, phase: 'nightIntro', ready: [] }
+      return { ...state, ready }
+    }
+
+    case 'forceAdvance': {
+      if (state.mode !== 'online') return state
+      if (state.phase === 'reveal') return { ...state, phase: 'nightIntro', ready: [] }
+      if (state.phase === 'night') return resolveNight(state)
+      return state
+    }
+
     case 'startNight': {
       if (state.phase !== 'nightIntro') return state
-      return { ...state, phase: 'night', turn: 0, nightChoices: {} }
+      return { ...state, phase: 'night', turn: 0, ready: [], nightChoices: {} }
     }
 
     case 'nightChoose': {
       if (state.phase !== 'night') return state
-      const actor = currentActor(state)
+      const actor = nightActor(state, action.actorId)
       if (!actor) return state
+      // Після «Готово» вибір в online уже не змінити
+      if (state.ready.includes(actor.id)) return state
       // Комісар бачить результат одразу, тож змінити перевірку вже не можна
       if (actor.role === 'detective' && state.nightChoices[actor.id]) return state
       const nightChoices = { ...state.nightChoices }
@@ -321,9 +350,15 @@ export function reduce(state: GameState, action: GameAction): GameState {
 
     case 'nightDone': {
       if (state.phase !== 'night') return state
-      const actor = currentActor(state)
+      const actor = nightActor(state, action.actorId)
       if (!actor) return state
       if (nightChoiceRequired(state, actor) && !state.nightChoices[actor.id]) return state
+      if (state.mode === 'online') {
+        if (state.ready.includes(actor.id)) return state
+        const ready = [...state.ready, actor.id]
+        if (ready.length >= nightQueue(state).length) return resolveNight({ ...state, ready })
+        return { ...state, ready }
+      }
       const turn = state.turn + 1
       if (turn >= nightQueue(state).length) return resolveNight(state)
       return { ...state, turn }
@@ -368,7 +403,7 @@ export function reduce(state: GameState, action: GameAction): GameState {
 
     case 'secretVoteDone': {
       const vote = state.vote
-      if (state.phase !== 'vote' || !vote || vote.turn >= vote.voters.length) return state
+      if (state.phase !== 'vote' || state.mode === 'online' || !vote || vote.turn >= vote.voters.length) return state
       if (!vote.votes[vote.voters[vote.turn]]) return state
       return { ...state, vote: { ...vote, turn: vote.turn + 1 } }
     }
@@ -376,7 +411,11 @@ export function reduce(state: GameState, action: GameAction): GameState {
     case 'finishVote': {
       const vote = state.vote
       if (state.phase !== 'vote' || !vote) return state
-      if (state.settings.voteMode === 'secret' && vote.turn < vote.voters.length) return state
+      // На одному телефоні таємне голосування завершується, лише коли телефон обійшов усіх.
+      // В online ведучий підсумовує сам: хто не проголосував — утримався.
+      if (state.mode !== 'online' && state.settings.voteMode === 'secret' && vote.turn < vote.voters.length) {
+        return state
+      }
       return resolveVote(state)
     }
 

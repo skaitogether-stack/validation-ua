@@ -237,3 +237,34 @@ model DbQuestion {
   explanation  String
   createdAt    DateTime @default(now())
 }
+// Онлайн-кімната гри: кожен гравець грає зі свого пристрою.
+// Гравці не обов'язково мають акаунт — їх упізнаємо за токеном пристрою.
+model GameRoom {
+  id          String   @id @default(cuid())
+  code        String   @unique             // короткий код для запрошення
+  game        String                       // mafia
+  status      String   @default("lobby")   // lobby | playing | closed
+  hostId      String                       // GameRoomPlayer.id ведучого
+  lobbyJson   String                       // налаштування лобі (тема, голосування, склад ролей)
+  stateJson   String?                      // стан гри під час партії
+  version     Int      @default(0)         // зростає з кожною зміною — для опитування й конкурентних оновлень
+  createdById String?                      // User.id того, хто створив кімнату
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  players     GameRoomPlayer[]
+
+  @@index([updatedAt])
+}
+
+model GameRoomPlayer {
+  id         String   @id @default(cuid())
+  roomId     String
+  room       GameRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  name       String
+  tokenHash  String   @unique              // sha256 від токена пристрою
+  seat       Int
+  lastSeenAt DateTime @default(now())
+  joinedAt   DateTime @default(now())
+
+  @@index([roomId])
+}

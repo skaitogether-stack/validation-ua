@@ -26,7 +26,7 @@ export function effectiveSetup(config: LobbyConfig): RoleSetup {
   return config.customSetup ?? defaultSetup(config.names.length)
 }
 
-function Toggle<T extends string>({
+export function Toggle<T extends string>({
   value,
   options,
   onChange
@@ -53,7 +53,7 @@ function Toggle<T extends string>({
   )
 }
 
-function Stepper({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (v: number) => void }) {
+export function Stepper({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (v: number) => void }) {
   return (
     <div className="flex items-center gap-3">
       <button
@@ -79,7 +79,7 @@ function Stepper({ value, min, max, onChange }: { value: number; min: number; ma
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-3">
       <h3 className="text-sm font-bold uppercase tracking-wide text-gray-500">{title}</h3>

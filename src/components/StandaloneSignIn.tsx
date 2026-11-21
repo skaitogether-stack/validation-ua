@@ -20,6 +20,7 @@ interface StandaloneSignInProps {
   subtitle: string
   steps: SignInStep[]
   note: string
+  extra?: React.ReactNode
 }
 
 const GoogleIcon = () => (
@@ -94,7 +95,7 @@ function InAppBrowserNotice({ inApp, callbackUrl }: { inApp: InAppBrowser; callb
   )
 }
 
-export function StandaloneSignIn({ inApp, callbackUrl, icon, title, subtitle, steps, note }: StandaloneSignInProps) {
+export function StandaloneSignIn({ inApp, callbackUrl, icon, title, subtitle, steps, note, extra }: StandaloneSignInProps) {
   return (
     <main className="min-h-screen bg-linear-to-br from-amber-50 via-slate-50 to-blue-50 flex items-center justify-center p-6">
       <div className="max-w-xl w-full text-center">
@@ -126,6 +127,7 @@ export function StandaloneSignIn({ inApp, callbackUrl, icon, title, subtitle, st
           </button>
         )}
         <p className="mt-3 text-xs text-gray-400">{note}</p>
+        {extra}
       </div>
     </main>
   )

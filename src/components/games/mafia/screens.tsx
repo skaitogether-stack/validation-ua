@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   alivePlayers,
   currentActor,
@@ -45,7 +45,7 @@ function RoleBadge({ theme, player }: { theme: ThemeStrings; player: Player }) {
 
 // ---------- Роздача ролей ----------
 
-function RoleCard({ state, player }: { state: GameState; player: Player }) {
+export function RoleCard({ state, player }: { state: GameState; player: Player }) {
   const theme = themeOf(state)
   const role = theme.roles[player.role]
   const partners = state.players.filter(p => p.role === 'mafia' && p.id !== player.id)
@@ -486,7 +486,21 @@ export function VoteResultScreen({ state, dispatch }: ScreenProps) {
 
 // ---------- Кінець гри ----------
 
-export function GameOverScreen({ state, onReplay, onNewPlayers }: { state: GameState; onReplay: () => void; onNewPlayers: () => void }) {
+export function GameOverScreen({
+  state,
+  onReplay,
+  onNewPlayers,
+  replayLabel = 'Ще раз (ті самі гравці)',
+  newPlayersLabel = 'Змінити гравців і налаштування',
+  footer
+}: {
+  state: GameState
+  onReplay?: () => void
+  onNewPlayers?: () => void
+  replayLabel?: string
+  newPlayersLabel?: string
+  footer?: ReactNode
+}) {
   const theme = themeOf(state)
   const winner = state.winner!
   const suspicionCount = new Map<string, number>()
@@ -549,10 +563,13 @@ export function GameOverScreen({ state, onReplay, onNewPlayers }: { state: GameS
         </div>
       )}
 
-      <Btn onClick={onReplay}>Ще раз (ті самі гравці)</Btn>
-      <Btn variant="secondary" onClick={onNewPlayers}>
-        Змінити гравців і налаштування
-      </Btn>
+      {onReplay && <Btn onClick={onReplay}>{replayLabel}</Btn>}
+      {onNewPlayers && (
+        <Btn variant="secondary" onClick={onNewPlayers}>
+          {newPlayersLabel}
+        </Btn>
+      )}
+      {footer}
     </Screen>
   )
 }

@@ -5,6 +5,8 @@ export type RoleId = 'mafia' | 'doctor' | 'detective' | 'civilian'
 export type Team = 'town' | 'mafia'
 export type ThemeId = 'city' | 'forest'
 export type VoteMode = 'open' | 'secret'
+// local — один телефон по колу; online — кожен зі свого пристрою
+export type GameMode = 'local' | 'online'
 
 export interface RoleSetup {
   mafia: number
@@ -81,11 +83,13 @@ export interface VoteState {
 
 export interface GameState {
   version: 1
+  mode: GameMode
   settings: Settings
   players: Player[] // у порядку місць за столом
   round: number // номер ночі/дня, починається з 1
   phase: Phase
-  turn: number // індекс у черзі поточного кола (роздача / ніч)
+  turn: number // індекс у черзі поточного кола (роздача / ніч), лише для local
+  ready: string[] // online: хто вже завершив поточний крок (роздача / ніч)
   nightChoices: Record<string, string> // playerId → targetId
   lastDoctorTargetId: string | null
   doctorSelfUsed: boolean
@@ -99,10 +103,12 @@ export interface GameState {
 export const ABSTAIN = '__abstain__'
 
 export type GameAction =
-  | { type: 'revealNext' }
+  | { type: 'revealNext' } // local: наступний гравець дивиться роль
+  | { type: 'ready'; actorId: string } // online: гравець подивився роль
   | { type: 'startNight' }
-  | { type: 'nightChoose'; targetId: string | null }
-  | { type: 'nightDone' }
+  | { type: 'nightChoose'; targetId: string | null; actorId?: string } // actorId — лише online
+  | { type: 'nightDone'; actorId?: string }
+  | { type: 'forceAdvance' } // online: ведучий не чекає тих, хто не відповідає
   | { type: 'toVote' }
   | { type: 'skipVote' }
   | { type: 'castVote'; voterId: string; targetId: string }

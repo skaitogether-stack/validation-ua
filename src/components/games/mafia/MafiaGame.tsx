@@ -18,6 +18,7 @@ import {
   VoteScreen
 } from './screens'
 import { speak } from './ui'
+import { CreateRoom } from './online/CreateRoom'
 
 // Гра «Мафія» на одному телефоні: стан живе лише в браузері (localStorage),
 // тож випадкове оновлення сторінки не перериває партію.
@@ -45,7 +46,8 @@ function load(): Saved {
       if (saved?.lobby?.names?.length) {
         return {
           lobby: { ...saved.lobby, settings: { ...DEFAULT_SETTINGS, ...saved.lobby.settings } },
-          game: saved.game?.version === 1 ? saved.game : null
+          // збереження з попередньої версії гри не мали mode/ready
+          game: saved.game?.version === 1 ? { ...saved.game, mode: 'local', ready: saved.game.ready ?? [] } : null
         }
       }
     }
@@ -88,6 +90,7 @@ function announcement(state: GameState): string | null {
 
 export function MafiaGame({ backHref }: { backHref: string }) {
   const [data, setData] = useState<Saved>(load)
+  const [mode, setMode] = useState<'local' | 'online'>('local')
   const { lobby, game } = data
 
   useEffect(() => save(data), [data])
@@ -137,7 +140,34 @@ export function MafiaGame({ backHref }: { backHref: string }) {
         )}
       </div>
 
-      {!game && <Lobby config={lobby} onChange={c => setData(d => ({ ...d, lobby: c }))} onStart={() => start()} />}
+      {!game && (
+        <>
+          <div className="flex rounded-2xl bg-white p-1 shadow-sm">
+            {(
+              [
+                ['local', '📱 Один телефон'],
+                ['online', '🌐 Кожен зі свого']
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setMode(id)}
+                className={`min-h-11 flex-1 rounded-xl px-3 text-sm font-bold transition-colors ${
+                  mode === id ? 'bg-indigo-600 text-white' : 'text-gray-500'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {mode === 'local' ? (
+            <Lobby config={lobby} onChange={c => setData(d => ({ ...d, lobby: c }))} onStart={() => start()} />
+          ) : (
+            <CreateRoom settings={lobby.settings} />
+          )}
+        </>
+      )}
       {game && <PhaseView game={game} dispatch={dispatch} onReplay={() => start()} onNewPlayers={() => setData(d => ({ ...d, game: null }))} />}
     </main>
   )
